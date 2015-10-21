@@ -126,6 +126,9 @@ def generate_function(ns, func):
     slug = ns['namespace'] + '/' + func['name']
     out = open(os.path.join(out_dir, slug), 'w')
 
+    title = ns['namespace'] + '.' + func['name'] + '()'
+    print >>out, '{{ "title": "{}", "show_toc": 0 }}'.format(title)
+
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
     print >>out, '<h2 id="Syntax">Syntax</h2>'
@@ -178,6 +181,9 @@ def generate_type(ns, t):
     slug = ns['namespace'] + '/' + t['id']
     out = open(os.path.join(out_dir, slug), 'w')
 
+    title = ns['namespace'] + '.' + t['id']
+    print >>out, '{{ "title": "{}", "show_toc": 0 }}'.format(title)
+
     print >>out, '<p>{}</p>'.format(t.get('description', t['id']))
 
     print >>out, '<h2 id="Type">Type</h2>'
@@ -219,16 +225,23 @@ def generate_property(ns, name, prop):
     slug = ns['namespace'] + '/' + name
     out = open(os.path.join(out_dir, slug), 'w')
 
+    title = ns['namespace'] + '.' + name
+    print >>out, '{{ "title": "{}", "show_toc": 0 }}'.format(title)
+
     print >>out, '<p>{}</p>'.format(prop.get('description', name))
 
     out.close()
 
+# FIXME: Need to add extra parameters.
 def generate_event(ns, func):
     #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
 
     os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
     slug = ns['namespace'] + '/' + func['name']
     out = open(os.path.join(out_dir, slug), 'w')
+
+    title = ns['namespace'] + '.' + func['name']
+    print >>out, '{{ "title": "{}", "show_toc": 0 }}'.format(title)
 
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
@@ -307,6 +320,54 @@ def generate(name):
 
         for event in ns.get('events', []):
             generate_event(ns, event)
+
+        index_file = ns['namespace'] + '/' + 'INDEX'
+        out = open(os.path.join(out_dir, index_file), 'w')
+
+        title = ns['namespace']
+        print >>out, '{{ "title": "{}", "show_toc": 0 }}'.format(title)
+
+        print >>out, '<p>{}</p>'.format(ns.get('description', ns['namespace']))
+
+        if 'types' in ns:
+            print >>out, '<h2 id="Types">Types</h2>'
+            print >>out, '<dl>'
+            for t in ns.get('types', []):
+                print >>out, '<dt><code>{}</code></dt>'.format(t['id'])
+                if 'description' in t:
+                    print >>out, '<dd>{}</dd>'.format(t['description'])
+            print >>out, '</dl>'
+
+        if 'properties' in ns:
+            print >>out, '<h2 id="Properties">Properties</h2>'
+            print >>out, '<dl>'
+            for prop in ns.get('properties', []):
+                print >>out, '<dt><code>{}</code></dt>'.format(prop)
+                if 'description' in ns['properties'][prop]:
+                    print >>out, '<dd>{}</dd>'.format(ns['properties'][prop]['description'])
+            print >>out, '</dl>'
+
+        if 'functions' in ns:
+            print >>out, '<h2 id="Functions">Functions</h2>'
+            print >>out, '<dl>'
+            for func in ns.get('functions', []):
+                args = ', '.join([ p['name'] for p in func['parameters'] ])
+                print >>out, '<dt><code>{}({})</code></dt>'.format(func['name'], args)
+                if 'description' in func:
+                    print >>out, '<dd>{}</dd>'.format(func['description'])
+            print >>out, '</dl>'
+
+        if 'events' in ns:
+            print >>out, '<h2 id="Events">Events</h2>'
+            print >>out, '<dl>'
+            for func in ns.get('events', []):
+                args = ', '.join([ p['name'] for p in func.get('parameters', []) ])
+                print >>out, '<dt><code>{}({})</code></dt>'.format(func['name'], args)
+                if 'description' in func:
+                    print >>out, '<dd>{}</dd>'.format(func['description'])
+            print >>out, '</dl>'
+
+        out.close()
 
 for name in sys.argv[3:]:
     generate(name)
