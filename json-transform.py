@@ -27,6 +27,57 @@ import json
 import os.path
 import collections
 
+LINK1 = 'https://chromium.googlesource.com/chromium/src/+/master/chrome/common/extensions/api/'
+LINK2 = 'https://chromium.googlesource.com/chromium/src/+/master/extensions/common/api/'
+
+JSON_SOURCES = {
+    'windows': LINK1,
+    'tabs': LINK1,
+    'extension': LINK1,
+    'bookmarks': LINK1,
+    'cookies': LINK1,
+    'i18n': LINK1,
+    'browser_action': LINK1,
+    'context_menus': LINK1,
+    'runtime': LINK2,
+    'idle': LINK2,
+    'storage': LINK2,
+    'web_navigation': LINK1,
+    'web_request': LINK2,
+}
+
+CHROMIUM_DOCS = 'https://developer.chrome.com/extensions/'
+
+LICENSE = '''
+// Copyright 2015 The Chromium Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+//    * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+//    * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+//    * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'''
+
 in_dir = sys.argv[1]
 out_dir = sys.argv[2]
 
@@ -119,7 +170,25 @@ def describe_function(func):
 
     return desc
 
-def generate_function(ns, func):
+def generate_compatibility(out, json_name, ns, anchor = None):
+    print >>out, '<h2 id="Compatibility">Compatibility</h2>'
+
+    chromium_api = 'chrome.' + ns
+
+    chromium_docs = CHROMIUM_DOCS + ns
+    if anchor:
+        chromium_docs += '#' + anchor
+
+    chromium_json = JSON_SOURCES[json_name] + json_name + '.json'
+
+    print >>out, "This API is based on Chromium's <a href=\"{}\"><code>{}</code></a> API.".format(chromium_docs, chromium_api)
+    print >>out, 'This documentation is derived from <a href="{}"><code>{}.json</code></a> in the Chromium code.'.format(chromium_json, json_name)
+
+    print >>out, '<div class="hidden"><pre>'
+    print >>out, LICENSE.strip()
+    print >>out, '</pre></div>'
+
+def generate_function(json_name, ns, func):
     #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
 
     os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
@@ -172,9 +241,11 @@ def generate_function(ns, func):
         print >>out, '<h3 id="Returns">Returns</h3>'
         print >>out, '<p>{}</p>'.format(func['returns']['description'])
 
+    generate_compatibility(out, json_name, ns['namespace'], 'method-' + func['name'])
+
     out.close()
 
-def generate_type(ns, t):
+def generate_type(json_name, ns, t):
     #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
 
     os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
@@ -216,9 +287,11 @@ def generate_type(ns, t):
         print t
         raise 'UNKNOWN'
 
+    generate_compatibility(out, json_name, ns['namespace'], 'type-' + t['id'])
+
     out.close()
 
-def generate_property(ns, name, prop):
+def generate_property(json_name, ns, name, prop):
     #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
 
     os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
@@ -230,10 +303,12 @@ def generate_property(ns, name, prop):
 
     print >>out, '<p>{}</p>'.format(prop.get('description', name))
 
+    generate_compatibility(out, json_name, ns['namespace'], 'property-' + name)
+
     out.close()
 
 # FIXME: Need to add extra parameters.
-def generate_event(ns, func):
+def generate_event(json_name, ns, func):
     #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
 
     os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
@@ -294,6 +369,8 @@ def generate_event(ns, func):
         print >>out, '<h3 id="Returns">Returns</h3>'
         print >>out, '<p>{}</p>'.format(func['returns']['description'])
 
+    generate_compatibility(out, json_name, ns['namespace'], 'event-' + func['name'])
+
     out.close()
 
 # We want to preserve the order from the original JSON file.
@@ -310,16 +387,16 @@ def generate(name):
     data = json.loads(text, object_pairs_hook=json_hook)
     for ns in data:
         for func in ns.get('functions', []):
-            generate_function(ns, func)
+            generate_function(name, ns, func)
 
         for prop in ns.get('properties', []):
-            generate_property(ns, prop, ns['properties'][prop])
+            generate_property(name, ns, prop, ns['properties'][prop])
 
         for typ in ns.get('types', []):
-            generate_type(ns, typ)
+            generate_type(name, ns, typ)
 
         for event in ns.get('events', []):
-            generate_event(ns, event)
+            generate_event(name, ns, event)
 
         index_file = ns['namespace'] + '/' + 'INDEX'
         out = open(os.path.join(out_dir, index_file), 'w')
@@ -366,6 +443,8 @@ def generate(name):
                 if 'description' in func:
                     print >>out, '<dd>{}</dd>'.format(func['description'])
             print >>out, '</dl>'
+
+        generate_compatibility(out, name, ns['namespace'])
 
         out.close()
 
