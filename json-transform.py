@@ -26,6 +26,7 @@ import sys
 import json
 import os.path
 import collections
+import re
 
 LINK1 = 'https://chromium.googlesource.com/chromium/src/+/master/chrome/common/extensions/api/'
 LINK2 = 'https://chromium.googlesource.com/chromium/src/+/master/extensions/common/api/'
@@ -79,8 +80,68 @@ LICENSE = '''
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
+COMPAT_TABLE = '''
+<h2 id="Browser_compatibility">Browser compatibility</h2>
+<p>{{ CompatibilityTable() }}</p>
+<div id="compat-desktop">
+<table class="compat-table">
+ <tbody>
+  <tr>
+   <th>Feature</th>
+   <th>Chrome</th>
+   <th>Edge</th>
+   <th>Firefox (Gecko)</th>
+   <th>Opera</th>
+  </tr>
+  <tr>
+   <td>Basic support</td>
+   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatUnknown() }}</td>
+  </tr>
+ </tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+ <tbody>
+  <tr>
+   <th>Feature</th>
+   <th>Edge</th>
+   <th>Firefox OS</th>
+   <th>Firefox Mobile (Gecko)</th>
+  <tr>
+   <td>Basic support</td>
+   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatUnknown() }}</td>
+  </tr>
+ </tbody>
+</table>
+</div>
+'''
+
 in_dir = sys.argv[1]
 out_dir = sys.argv[2]
+
+def get_common_tags(out, namespace):
+    common_tags = '"API", "Reference", "WebExtensions", "Add-ons", "Extensions", "Non-standard", '
+    common_tags += '"{}", '.format(namespace)
+    return common_tags
+
+def get_api_tags(out, namespace):
+    tags = '"tags": ['
+    tags += get_common_tags(out, namespace)
+    tags += '"{}"]'.format("Interface")
+    return tags
+
+def get_api_component_tags(out, namespace, name, component_type):
+    tags = '"tags": ['
+    tags += get_common_tags(out, namespace)
+    tags += '"{}", '.format(name)
+    tags += '"{}"] '.format(component_type)
+    return tags
 
 def describe_type(t):
     def simple_describe(t):
@@ -171,61 +232,6 @@ def describe_function(func):
 
     return desc
 
-def generate_compat_table(out):
-    print >>out, '<h2 id="Browser_compatibility">Browser compatibility</h2>'
-    print >>out, '<p>{{ CompatibilityTable() }}</p>'
-    print >>out, '<div id="compat-desktop">'
-    print >>out, '<table class="compat-table">'
-    print >>out, ' <tbody>'
-    print >>out, '  <tr>'
-    print >>out, '   <th>Feature</th>'
-    print >>out, '   <th>Chrome</th>'
-    print >>out, '   <th>Edge</th>'
-    print >>out, '   <th>Firefox (Gecko)</th>'
-    print >>out, '   <th>Internet Explorer</th>'
-    print >>out, '   <th>Opera</th>'
-    print >>out, '   <th>Safari</th>'
-    print >>out, '  </tr>'
-    print >>out, '  <tr>'
-    print >>out, '   <td>Basic support</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '  </tr>'
-    print >>out, ' </tbody>'
-    print >>out, '</table>'
-    print >>out, '</div>'
-    print >>out, '<div id="compat-mobile">'
-    print >>out, '<table class="compat-table">'
-    print >>out, ' <tbody>'
-    print >>out, '  <tr>'
-    print >>out, '   <th>Feature</th>'
-    print >>out, '   <th>Android</th>'
-    print >>out, '   <th>Chrome for Android</th>'
-    print >>out, '   <th>Edge</th>'
-    print >>out, '   <th>Firefox Mobile (Gecko)</th>'
-    print >>out, '   <th>IE Mobile</th>'
-    print >>out, '   <th>Opera Mobile</th>'
-    print >>out, '   <th>iOS WebKit<br />'
-    print >>out, '    <sup><sub>(Safari/Chrome/Firefox/etc)</sub></sup></th>'
-    print >>out, '  </tr>'
-    print >>out, '  <tr>'
-    print >>out, '   <td>Basic support</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '   <td>{{ CompatUnknown() }}</td>'
-    print >>out, '  </tr>'
-    print >>out, ' </tbody>'
-    print >>out, '</table>'
-    print >>out, '</div>'
-
 def generate_acknowledgement(out, json_name, ns, anchor = None):
     print >>out, '<div class="note">'
     print >>out, '<strong>Acknowledgements</strong>'
@@ -255,9 +261,14 @@ def generate_function(json_name, ns, func):
     out = open(os.path.join(out_dir, slug), 'w')
 
     title = ns['namespace'] + '.' + func['name'] + '()'
-    print >>out, '{{ "title": "{}", "show_toc": 0, "tag: "Method" }}'.format(title)
 
-    print >>out, '{{WebExtensionSidebar()}}'
+    print >>out, '{'
+    print >>out, '"title": "{}",'.format(title)
+    print >>out, '"show_toc": 0,'
+    print >>out, get_api_component_tags(out, ns['namespace'], func['name'], "Method")
+    print >>out, "}"
+
+    print >>out, '{{AddonSidebar()}}'
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
     print >>out, '<h2 id="Syntax">Syntax</h2>'
@@ -301,7 +312,7 @@ def generate_function(json_name, ns, func):
         print >>out, '<h3 id="Returns">Returns</h3>'
         print >>out, '<p>{}</p>'.format(func['returns']['description'])
 
-    generate_compat_table(out)
+    print >>out, COMPAT_TABLE
     generate_acknowledgement(out, json_name, ns['namespace'], 'method-' + func['name'])
 
     out.close()
@@ -314,9 +325,14 @@ def generate_type(json_name, ns, t):
     out = open(os.path.join(out_dir, slug), 'w')
 
     title = ns['namespace'] + '.' + t['id']
-    print >>out, '{{ "title": "{}", "show_toc": 0, "tag: "Type" }}'.format(title)
 
-    print >>out, '{{WebExtensionSidebar()}}'
+    print >>out, '{'
+    print >>out, '"title": "{}",'.format(title)
+    print >>out, '"show_toc": 0,'
+    print >>out, get_api_component_tags(out, ns['namespace'], t['id'], "Type")
+    print >>out, "}"
+
+    print >>out, '{{AddonSidebar()}}'
     print >>out, '<p>{}</p>'.format(t.get('description', t['id']))
 
     print >>out, '<h2 id="Type">Type</h2>'
@@ -349,7 +365,7 @@ def generate_type(json_name, ns, t):
         print t
         raise 'UNKNOWN'
 
-    generate_compat_table(out)
+    print >>out, COMPAT_TABLE
     generate_acknowledgement(out, json_name, ns['namespace'], 'type-' + t['id'])
 
     out.close()
@@ -362,12 +378,17 @@ def generate_property(json_name, ns, name, prop):
     out = open(os.path.join(out_dir, slug), 'w')
 
     title = ns['namespace'] + '.' + name
-    print >>out, '{{ "title": "{}", "show_toc": 0, "tag: "Property" }}'.format(title)
 
-    print >>out, '{{WebExtensionSidebar()}}'
+    print >>out, '{'
+    print >>out, '"title": "{}",'.format(title)
+    print >>out, '"show_toc": 0,'
+    print >>out, get_api_component_tags(out, ns['namespace'], name, "Property")
+    print >>out, "}"
+
+    print >>out, '{{AddonSidebar()}}'
     print >>out, '<p>{}</p>'.format(prop.get('description', name))
 
-    generate_compat_table(out)
+    print >>out, COMPAT_TABLE
     generate_acknowledgement(out, json_name, ns['namespace'], 'property-' + name)
 
     out.close()
@@ -381,9 +402,14 @@ def generate_event(json_name, ns, func):
     out = open(os.path.join(out_dir, slug), 'w')
 
     title = ns['namespace'] + '.' + func['name']
-    print >>out, '{{ "title": "{}", "show_toc": 0, "tag": "Event" }}'.format(title)
 
-    print >>out, '{{WebExtensionSidebar()}}'
+    print >>out, '{'
+    print >>out, '"title": "{}",'.format(title)
+    print >>out, '"show_toc": 0,'
+    print >>out, get_api_component_tags(out, ns['namespace'], func["name"], "Event")
+    print >>out, "}"
+
+    print >>out, '{{AddonSidebar()}}'
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
     print >>out, '<h2 id="Syntax">Syntax</h2>'
@@ -435,7 +461,7 @@ def generate_event(json_name, ns, func):
         print >>out, '<h3 id="Returns">Returns</h3>'
         print >>out, '<p>{}</p>'.format(func['returns']['description'])
 
-    generate_compat_table(out)
+    print >>out, COMPAT_TABLE
     generate_acknowledgement(out, json_name, ns['namespace'], 'event-' + func['name'])
 
     out.close()
@@ -446,7 +472,20 @@ def json_hook(pairs):
 
 def generate(name):
     in_path = os.path.join(in_dir, name + '.json')
+
     text = open(in_path).read()
+    
+    # convert inline references from $(ref:<name>) to {{wexref(name)}}
+    def convert_reference(reference):
+        link_text = reference.group(0)[6:-1]
+        components = link_text.split('.')
+        if len(components) > 2:
+            link_target = components[0] + "." + components[1]
+            return "{{{{wexref('{}', '{}')}}}}".format(link_target, link_text)
+        return "{{{{wexref('{}')}}}}".format(link_text)
+    
+    text = re.sub(r'\$\(ref:.*?\)', convert_reference, text)
+    
     lines = text.split('\n')
     lines = [ line for line in lines if not line.strip().startswith('//') ]
     text = '\n'.join(lines)
@@ -469,9 +508,13 @@ def generate(name):
         out = open(os.path.join(out_dir, index_file), 'w')
 
         title = ns['namespace']
-        print >>out, '{{ "title": "{}", "show_toc": 0 }}'.format(title)
+        print >>out, '{'
+        print >>out, '"title": "{}",'.format(title)
+        print >>out, '"show_toc": 0,'
+        print >>out, get_api_tags(out, title)
+        print >>out, "}"
 
-        print >>out, '{{WebExtensionSidebar()}}'
+        print >>out, '{{AddonSidebar()}}'
         print >>out, '<p>{}</p>'.format(ns.get('description', ns['namespace']))
 
         if 'types' in ns:
@@ -512,7 +555,7 @@ def generate(name):
                     print >>out, '<dd>{}</dd>'.format(func['description'])
             print >>out, '</dl>'
 
-        generate_compat_table(out)
+        print >>out, COMPAT_TABLE
         print >>out, '{{WebExtCompat()}}'
 
         generate_acknowledgement(out, name, ns['namespace'])
