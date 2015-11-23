@@ -143,22 +143,27 @@ def get_api_component_tags(out, namespace, name, component_type):
     tags += '"{}"] '.format(component_type)
     return tags
 
-def describe_type(t):
-    def simple_describe(t):
+def describe_type(ns, t):
+    def simple_describe(ns, t):
         if 'type' in t:
             if t['type'] == 'array':
-                return simple_describe(t['items']) + ' array'
+                return simple_describe(ns, t['items']) + ' array'
             else:
                 return t['type']
         elif 'choices' in t:
-            return ' or '.join([ simple_describe(t2) for t2 in t['choices'] ])
+            return ' or '.join([ simple_describe(ns, t2) for t2 in t['choices'] ])
         elif '$ref' in t:
-            return t['$ref']
+            ref = t['$ref']
+            ref_components = ref.split(".")
+            if len(ref_components) == 1:
+                return "{{{{wexref('{}')}}}}".format(ns['namespace'] + "." + ref)
+            else:
+                return "{{{{wexref('{}')}}}}".format(ref)
         else:
             print 'UNKNOWN', t
             raise 'BAD'
 
-    base = simple_describe(t)
+    base = simple_describe(ns, t)
     if t.get('optional', False):
         return 'optional {}'.format(base)
     else:
@@ -171,13 +176,13 @@ def function_example(param):
         fparams = ''
     return 'function({}) {{...}}'.format(fparams)
 
-def describe_param(param):
+def describe_param(ns, param):
     if param.get('type') == 'function':
-        return (function_example(param), describe_type(param))
+        return (function_example(param), describe_type(ns, param))
     else:
-        return (param['name'], describe_type(param))
+        return (param['name'], describe_type(ns, param))
 
-def describe_object(obj):
+def describe_object(ns, obj):
     props = obj.get('properties')
     if not props:
         return ''
@@ -187,7 +192,7 @@ def describe_object(obj):
 
     for prop in props:
         desc += '  <tr>\n'
-        desc += '    <td>{}</td>\n'.format(describe_type(props[prop]))
+        desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop]))
         desc += '    <td><code><b>{}</b></code></td>\n'.format(prop)
         desc += '    <td>{}</td>\n'.format(props[prop].get('description', ''))
         desc += '  </td>\n'
@@ -212,7 +217,7 @@ def describe_enum(enum):
     else:
         return 'Possible values are: {}'.format(', '.join([ '<code>"' + s + '"</code>' for s in enum ]))
 
-def describe_function(func):
+def describe_function(ns, func):
     if 'parameters' not in func:
         return ''
 
@@ -222,7 +227,7 @@ def describe_function(func):
 
     for param in func['parameters']:
         desc += '  <tr>\n'
-        desc += '    <td>{}</td>\n'.format(describe_type(param))
+        desc += '    <td>{}</td>\n'.format(describe_type(ns, param))
         desc += '    <td><code><b>{}</b></code></td>\n'.format(param['name'])
         if 'description' in param:
             desc += '    <td>{}</td>\n'.format(param['description'])
@@ -278,7 +283,7 @@ def generate_function(json_name, ns, func):
 
     info = []
     for (i, param) in enumerate(func['parameters']):
-        (name, desc) = describe_param(param)
+        (name, desc) = describe_param(ns, param)
         if i != len(func['parameters']) - 1:
             name += ','
         info.append((name, desc))
@@ -295,14 +300,14 @@ def generate_function(json_name, ns, func):
     print >>out, '<h3 id="Parameters">Parameters</h3>'
     print >>out, '<dl>'
     for param in func['parameters']:
-        print >>out, '<dt><code>{}</code> ({})</dt>'.format(param['name'], describe_type(param))
+        print >>out, '<dt><code>{}</code> : {}</dt>'.format(param['name'], describe_type(ns, param))
 
         desc = param.get('description', '')
 
         if param.get('type') == 'object':
-            desc += describe_object(param)
+            desc += describe_object(ns, param)
         elif param.get('type') == 'function':
-            desc += describe_function(param)
+            desc += describe_function(ns, param)
         if desc:
             print >>out, '<dd>{}</dd>'.format(desc)
 
@@ -339,7 +344,7 @@ def generate_type(json_name, ns, t):
 
     if t['type'] == 'object':
         print >>out, '<p>Values of this type are objects.</p>'
-        print >>out, describe_object(t)
+        print >>out, describe_object(ns, t)
     elif t['type'] == 'string':
         print >>out, '<p>Values of this type are strings.'
         if 'enum' in t:
@@ -347,7 +352,7 @@ def generate_type(json_name, ns, t):
         print >>out, '</p>'
 
     elif t['type'] == 'array':
-        print >>out, '<p>Values of this type are {}s.'.format(describe_type(t))
+        print >>out, '<p>Values of this type are {}s.'.format(describe_type(ns, t))
         if 'minItems' in t:
             assert t['minItems'] == t['maxItems']
             print >>out, 'The array should contain {} elements.'.format(t['minItems'])
@@ -360,7 +365,7 @@ def generate_type(json_name, ns, t):
 
         if items['type'] == 'object':
             print >>out, '<p>Elements of the array look like:</p>'
-            print >>out, describe_object(items)
+            print >>out, describe_object(ns, items)
     else:
         print t
         raise 'UNKNOWN'
@@ -393,7 +398,6 @@ def generate_property(json_name, ns, name, prop):
 
     out.close()
 
-# FIXME: Need to add extra parameters.
 def generate_event(json_name, ns, func):
     #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
 
@@ -422,7 +426,7 @@ def generate_event(json_name, ns, func):
 
         info = []
         for (i, param) in enumerate(params):
-            (name, desc) = describe_param(param)
+            (name, desc) = describe_param(ns, param)
             if i != len(func['parameters']) - 1:
                 name += ','
             info.append((name, desc))
@@ -439,27 +443,85 @@ def generate_event(json_name, ns, func):
 
     print >>out, 'browser.{}.{}.removeListener(listener)'.format(ns['namespace'], func['name'])
     print >>out, 'browser.{}.{}.hasListener(listener)'.format(ns['namespace'], func['name'])
-    print >>out, '</pre>'
-
-    print >>out, '<h3 id="Parameters">Listener parameters</h3>'
+    print >>out, '</pre>'    
+    
+    add_listener_params = "callback"
+    
+    extra_params = func.get('extraParameters', [])
+    if len(extra_params) > 0:
+        add_listener_params += ", "
+        add_listener_params += ", ".join([extra_param['name'] for extra_param in extra_params])
+    
+    print >>out, '<h3>addListener({})</h3>'.format(add_listener_params)
+    print >>out, '<p>Adds a listener to this event.</p>'
+    print >>out, '<h4>Parameters</h4>'
     print >>out, '<dl>'
-    for param in params:
-        print >>out, '<dt><code>{}</code> ({})</dt>'.format(param['name'], describe_type(param))
+    print >>out, '<dt><code>callback</code></dt>'
+    
+    callback_desc = "Function that will be called when this event occurs."
+    
+    if len(params) > 0:
 
-        desc = param.get('description', '')
+        callback_desc += " The function will be passed the following arguments:</p>"
+        
+        for param in params:
+            param_name = param['name']
+            if (param_name == "details"):
+                callback_desc += '<dl><dt><code>details</code></dt><dd>An object providing details about the event. This object has the following structure:</p>'
+            else:
+                callback_desc += '<dl><dt><code>{}</code></dt><dd>{}'.format(param['name'], param.get('description', ''))
 
-        if param.get('type') == 'object':
-            desc += describe_object(param)
-        elif param.get('type') == 'function':
-            desc += describe_function(param)
-        if desc:
-            print >>out, '<dd>{}</dd>'.format(desc)
+            if param.get('type') == 'object':
+                callback_desc += describe_object(ns, param)
+            elif param.get('type') == 'function':
+                callback_desc += describe_function(ns, param)
+            callback_desc += "</dd></dl>"
+            
+    if 'returns' in func:
+        return_type_desc = describe_type(ns, func['returns'])
+        
+        callback_desc += '<p>Returns: {}. '.format(return_type_desc)
+        if 'description' in func['returns']:
+            callback_desc += ' {}'.format(func['returns']['description'])
+        callback_desc += '</p>'
+        
+    print >>out, '<dd>{}</dd>'.format(callback_desc)
+        
+    if len(extra_params):
+    
+        print >>out, '<dl>'
+        for param in extra_params:
+            print >>out, '<dt><code>{}</code> : {}</dt>'.format(param['name'], describe_type(ns, param))
+
+            desc = param.get('description', '')
+
+            if param.get('type') == 'object':
+                desc += describe_object(ns, param)
+            elif param.get('type') == 'function':
+                desc += describe_function(param)
+            if desc:
+                print >>out, '<dd>{}</dd>'.format(desc)
 
     print >>out, '</dl>'
 
-    if 'returns' in func and 'description' in func['returns']:
-        print >>out, '<h3 id="Returns">Returns</h3>'
-        print >>out, '<p>{}</p>'.format(func['returns']['description'])
+    print >>out, '<h3>removeListener(callback)</h3>'
+    print >>out, '<p>Stops this listener receiving notifications for this event.</p>'
+    print >>out, '<h4>Parameters</h4>'
+    print >>out, '<dl>'
+    print >>out, '<dt><code>callback</code></dt>'
+    print >>out, '<dd><code>Function</code>. The listener to remove.</dd>'
+    print >>out, '</dl>'
+    
+    print >>out, '<h3>hasListener(callback)</h3>'
+    print >>out, '<p>Find out whether the given callback is registered as a listener to this event.</p>'
+    print >>out, '<h4>Parameters</h4>'
+    print >>out, '<dl>'
+    print >>out, '<dt><code>callback</code></dt>'
+    print >>out, '<dd><code>Function</code>. The listener to check.</dd>'
+    print >>out, '</dl>'
+    
+    print >>out, '<h4>Returns</h4>'
+    print >>out, '<p>Boolean: <code>true</code> if the given listener is registered, <code>false</code> otherwise.'
 
     print >>out, COMPAT_TABLE
     generate_acknowledgement(out, json_name, ns['namespace'], 'event-' + func['name'])
