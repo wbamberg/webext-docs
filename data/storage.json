@@ -5,8 +5,7 @@
 [
   {
     "namespace": "storage",
-    "description": "Use the <code>chrome.storage</code> API to store, retrieve, and track changes to user data.",
-    "unprivileged": true,
+    "description": "Use the <code>browser.storage</code> API to store, retrieve, and track changes to user data.",
     "types": [
       {
         "id": "StorageChange",
@@ -27,7 +26,6 @@
       {
         "id": "StorageArea",
         "type": "object",
-        "js_module": "StorageArea",
         "functions": [
           {
             "name": "get",
@@ -65,6 +63,7 @@
           },
           {
             "name": "getBytesInUse",
+            "unsupported": true,
             "type": "function",
             "description": "Gets the amount of space (in bytes) being used by one or more items.",
             "parameters": [
@@ -172,8 +171,9 @@
     ],
     "properties": {
       "sync": {
+        "unsupported": true,
         "$ref": "StorageArea",
-        "description": "Items in the <code>sync</code> storage area are synced using Chrome Sync.",
+        "description": "Items in the <code>sync</code> storage area are synced by the browser.",
         "value": [ "sync" ],
         "properties": {
           "QUOTA_BYTES": {
@@ -215,6 +215,7 @@
         }
       },
       "managed": {
+        "unsupported": true,
         "$ref": "StorageArea",
         "description": "Items in the <code>managed</code> storage area are set by the domain administrator, and are read-only for the extension; trying to modify this namespace results in an error.",
         "value": [ "managed" ]

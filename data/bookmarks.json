@@ -5,19 +5,7 @@
 [
   {
     "namespace": "bookmarks",
-    "description": "Use the <code>chrome.bookmarks</code> API to create, organize, and otherwise manipulate bookmarks. Also see <a href='override'>Override Pages</a>, which you can use to create a custom Bookmark Manager page.",
-    "properties": {
-      "MAX_WRITE_OPERATIONS_PER_HOUR": {
-        "value": 1000000,
-        "deprecated": "Bookmark write operations are no longer limited by Chrome.",
-        "description": ""
-      },
-      "MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE": {
-        "value": 1000000,
-        "deprecated": "Bookmark write operations are no longer limited by Chrome.",
-        "description": ""
-      }
-    },
+    "description": "Use the <code>browser.bookmarks</code> API to create, organize, and otherwise manipulate bookmarks. Also see <a href='$(topic:override)'>Override Pages</a>, which you can use to create a custom Bookmark Manager page.",
     "types": [
       {
         "id": "BookmarkTreeNodeUnmodifiable",
@@ -32,12 +20,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "minimum": 0,
             "description": "The unique identifier for the node. IDs are unique within the current profile, and they remain valid even after the browser is restarted."
           },
           "parentId": {
             "type": "string",
-            "minimum": 0,
             "optional": true,
             "description": "The <code>id</code> of the parent folder.  Omitted for the root node."
           },
@@ -81,12 +67,10 @@
       {
         "id": "CreateDetails",
         "description": "Object passed to the create() function.",
-        "inline_doc": true,
         "type": "object",
         "properties": {
           "parentId": {
             "type": "string",
-            "serialized_type": "int64",
             "optional": true,
             "description": "Defaults to the Other Bookmarks folder."
           },
@@ -117,14 +101,12 @@
             "description": "A single string-valued id, or an array of string-valued ids",
             "choices": [
               {
-                "type": "string",
-                "serialized_type": "int64"
+                "type": "string"
               },
               {
                 "type": "array",
                 "items": {
-                  "type": "string",
-                  "serialized_type": "int64"
+                  "type": "string"
                 },
                 "minItems": 1
               }
@@ -150,7 +132,6 @@
         "parameters": [
           {
             "type": "string",
-            "serialized_type": "int64",
             "name": "id"
           },
           {
@@ -168,6 +149,7 @@
       },
       {
         "name": "getRecent",
+        "unsupported": true,
         "type": "function",
         "description": "Retrieves the recently added bookmarks.",
         "parameters": [
@@ -215,7 +197,6 @@
         "parameters": [
           {
             "type": "string",
-            "serialized_type": "int64",
             "name": "id",
             "description": "The ID of the root of the subtree to retrieve."
           },
@@ -234,6 +215,7 @@
       },
       {
         "name": "search",
+        "unsupported": true,
         "type": "function",
         "description": "Searches for BookmarkTreeNodes matching the given query. Queries specified with an object produce BookmarkTreeNodes matching all specified properties.",
         "parameters": [
@@ -310,7 +292,6 @@
         "parameters": [
           {
             "type": "string",
-            "serialized_type": "int64",
             "name": "id"
           },
           {
@@ -348,7 +329,6 @@
         "parameters": [
           {
             "type": "string",
-            "serialized_type": "int64",
             "name": "id"
           },
           {
@@ -385,7 +365,6 @@
         "parameters": [
           {
             "type": "string",
-            "serialized_type": "int64",
             "name": "id"
           },
           {
@@ -398,12 +377,12 @@
       },
       {
         "name": "removeTree",
+        "unsupported": true,
         "type": "function",
         "description": "Recursively removes a bookmark folder.",
         "parameters": [
           {
             "type": "string",
-            "serialized_type": "int64",
             "name": "id"
           },
           {
@@ -416,9 +395,9 @@
       },
       {
         "name": "import",
+        "unsupported": true,
         "type": "function",
-        "description": "Imports bookmarks from a chrome html bookmark file",
-        "nodoc": "true",
+        "description": "Imports bookmarks from an html bookmark file",
         "parameters": [
           {
             "type": "function",
@@ -430,9 +409,9 @@
       },
       {
         "name": "export",
+        "unsupported": true,
         "type": "function",
-        "description": "Exports bookmarks to a chrome html bookmark file",
-        "nodoc": "true",
+        "description": "Exports bookmarks to an html bookmark file",
         "parameters": [
           {
             "type": "function",
@@ -446,6 +425,7 @@
     "events": [
       {
         "name": "onCreated",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a bookmark or folder is created.",
         "parameters": [
@@ -461,6 +441,7 @@
       },
       {
         "name": "onRemoved",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a bookmark or folder is removed.  When a folder is removed recursively, a single notification is fired for the folder, and none for its contents.",
         "parameters": [
@@ -481,6 +462,7 @@
       },
       {
         "name": "onChanged",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a bookmark or folder changes.  <b>Note:</b> Currently, only title and url changes trigger this.",
         "parameters": [
@@ -503,6 +485,7 @@
       },
       {
         "name": "onMoved",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a bookmark or folder is moved to a different parent folder.",
         "parameters": [
@@ -524,6 +507,7 @@
       },
       {
         "name": "onChildrenReordered",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when the children of a folder have changed their order due to the order being sorted in the UI.  This is not called as a result of a move().",
         "parameters": [
@@ -545,12 +529,14 @@
       },
       {
         "name": "onImportBegan",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a bookmark import session is begun.  Expensive observers should ignore onCreated updates until onImportEnded is fired.  Observers should still handle other notifications immediately.",
         "parameters": []
       },
       {
         "name": "onImportEnded",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a bookmark import session is ended.",
         "parameters": []

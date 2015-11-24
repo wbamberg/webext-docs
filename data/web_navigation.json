@@ -5,13 +5,13 @@
 [
   {
     "namespace": "webNavigation",
-    "description": "Use the <code>chrome.webNavigation</code> API to receive notifications about the status of navigation requests in-flight.",
+    "description": "Use the <code>browser.webNavigation</code> API to receive notifications about the status of navigation requests in-flight.",
     "types": [
       {
         "id": "TransitionType",
         "type": "string",
         "enum": ["link", "typed", "auto_bookmark", "auto_subframe", "manual_subframe", "generated", "start_page", "form_submit", "reload", "keyword", "keyword_generated"],
-        "description": "Cause of the navigation. The same transition types as defined in the history API are used. These are the same transition types as defined in the <a href=\"history#transition_types\">history API</a> except with <code>\"start_page\"</code> in place of <code>\"auto_toplevel\"</code> (for backwards compatibility)."
+        "description": "Cause of the navigation. The same transition types as defined in the history API are used. These are the same transition types as defined in the <a href=\"$(topic:transition_types)\">history API</a> except with <code>\"start_page\"</code> in place of <code>\"auto_toplevel\"</code> (for backwards compatibility)."
       },
       {
         "id": "TransitionQualifier",
@@ -22,6 +22,7 @@
     "functions": [
       {
         "name": "getFrame",
+        "unsupported": true,
         "type": "function",
         "description": "Retrieves information about the given frame. A frame refers to an &lt;iframe&gt; or a &lt;frame&gt; of a web page and is identified by a tab ID and a frame ID.",
         "parameters": [
@@ -63,6 +64,7 @@
       },
       {
         "name": "getAllFrames",
+        "unsupported": true,
         "type": "function",
         "description": "Retrieves information about all frames of a given tab.",
         "parameters": [
@@ -249,6 +251,7 @@
       },
       {
         "name": "onCreatedNavigationTarget",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when a new window, or a new tab in an existing window, is created to host a navigation.",
         "filters": [
@@ -304,6 +307,7 @@
       },
       {
         "name": "onTabReplaced",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when the contents of the tab is replaced by a different (usually previously pre-rendered) tab.",
         "parameters": [

@@ -5,7 +5,7 @@
 [
   {
     "namespace": "cookies",
-    "description": "Use the <code>chrome.cookies</code> API to query and modify cookies, and to be notified when they change.",
+    "description": "Use the <code>browser.cookies</code> API to query and modify cookies, and to be notified when they change.",
     "types": [
       {
         "id": "Cookie",
@@ -37,7 +37,7 @@
         "id": "OnChangedCause",
         "type": "string",
         "enum": ["evicted", "expired", "explicit", "expired_overwrite", "overwrite"],
-        "description": "The underlying reason behind the cookie's change. If a cookie was inserted, or removed via an explicit call to \"chrome.cookies.remove\", \"cause\" will be \"explicit\". If a cookie was automatically removed due to expiry, \"cause\" will be \"expired\". If a cookie was removed due to being overwritten with an already-expired expiration date, \"cause\" will be set to \"expired_overwrite\".  If a cookie was automatically removed due to garbage collection, \"cause\" will be \"evicted\".  If a cookie was automatically removed due to a \"set\" call that overwrote it, \"cause\" will be \"overwrite\". Plan your response accordingly."
+        "description": "The underlying reason behind the cookie's change. If a cookie was inserted, or removed via an explicit call to $(ref:cookies.remove), \"cause\" will be \"explicit\". If a cookie was automatically removed due to expiry, \"cause\" will be \"expired\". If a cookie was removed due to being overwritten with an already-expired expiration date, \"cause\" will be set to \"expired_overwrite\".  If a cookie was automatically removed due to garbage collection, \"cause\" will be \"evicted\".  If a cookie was automatically removed due to a \"set\" call that overwrote it, \"cause\" will be \"overwrite\". Plan your response accordingly."
       }
     ],
     "functions": [
@@ -122,10 +122,9 @@
             "type": "function",
             "name": "callback",
             "optional": true,
-            "min_version": "11.0.674.0",
             "parameters": [
               {
-                "name": "cookie", "$ref": "Cookie", "optional": true, "description": "Contains details about the cookie that's been set.  If setting failed for any reason, this will be \"null\", and \"chrome.runtime.lastError\" will be set."
+                "name": "cookie", "$ref": "Cookie", "optional": true, "description": "Contains details about the cookie that's been set.  If setting failed for any reason, this will be \"null\", and $(ref:runtime.lastError) will be set."
               }
             ]
           }
@@ -150,12 +149,11 @@
             "type": "function",
             "name": "callback",
             "optional": true,
-            "min_version": "11.0.674.0",
             "parameters": [
               {
                 "name": "details",
                 "type": "object",
-                "description": "Contains details about the cookie that's been removed.  If removal failed for any reason, this will be \"null\", and \"chrome.runtime.lastError\" will be set.",
+                "description": "Contains details about the cookie that's been removed.  If removal failed for any reason, this will be \"null\", and $(ref:runtime.lastError) will be set.",
                 "optional": true,
                 "properties": {
                   "url": {"type": "string", "description": "The URL associated with the cookie that's been removed."},
@@ -196,7 +194,7 @@
             "properties": {
               "removed": {"type": "boolean", "description": "True if a cookie was removed."},
               "cookie": {"$ref": "Cookie", "description": "Information about the cookie that was set or removed."},
-              "cause": {"min_version": "12.0.707.0", "$ref": "OnChangedCause", "description": "The underlying reason behind the cookie's change."}
+              "cause": {"$ref": "OnChangedCause", "description": "The underlying reason behind the cookie's change."}
             }
           }
         ]

@@ -5,10 +5,7 @@
 [
   {
     "namespace": "extension",
-    "description": "The <code>chrome.extension</code> API has utilities that can be used by any extension page. It includes support for exchanging messages between an extension and its content scripts or between extensions, as described in detail in <a href='messaging'>Message Passing</a>.",
-    "compiler_options": {
-      "implemented_in": "chrome/browser/extensions/api/module/module.h"
-    },
+    "description": "The <code>browser.extension</code> API has utilities that can be used by any extension page. It includes support for exchanging messages between an extension and its content scripts or between extensions, as described in detail in <a href='$(topic:messaging)'>Message Passing</a>.",
     "properties": {
       "lastError": {
         "type": "object",
@@ -35,7 +32,7 @@
     "functions": [
       {
         "name": "sendRequest",
-        "nocompile": true,
+        "unsupported": true,
         "deprecated": "Please use $(ref:runtime.sendMessage).",
         "type": "function",
         "allowAmbiguousOptionalArguments": true,
@@ -59,7 +56,6 @@
       },
       {
         "name": "getURL",
-        "nocompile": true,
         "type": "function",
         "description": "Converts a relative path within an extension install directory to a fully-qualified URL.",
         "parameters": [
@@ -76,7 +72,6 @@
       },
       {
         "name": "getViews",
-        "nocompile": true,
         "type": "function",
         "description": "Returns an array of the JavaScript 'window' objects for each of the pages running inside the current extension.",
         "parameters": [
@@ -111,7 +106,6 @@
       },
       {
         "name": "getBackgroundPage",
-        "nocompile": true,
         "type": "function",
         "description": "Returns the JavaScript 'window' object for the background page running inside the current extension. Returns null if the extension has no background page.",
         "parameters": [],
@@ -125,7 +119,7 @@
       },
       {
         "name": "getExtensionTabs",
-        "nocompile": true,
+        "unsupported": true,
         "deprecated": "Please use $(ref:extension.getViews) <code>{type: \"tab\"}</code>.",
         "type": "function",
         "maximumManifestVersion": 1,
@@ -146,6 +140,7 @@
       },
       {
         "name": "isAllowedIncognitoAccess",
+        "unsupported": true,
         "type": "function",
         "description": "Retrieves the state of the extension's access to Incognito-mode (as determined by the user-controlled 'Allowed in Incognito' checkbox.",
         "min_version": "12.0.706.0",
@@ -165,6 +160,7 @@
       },
       {
         "name": "isAllowedFileSchemeAccess",
+        "unsupported": true,
         "type": "function",
         "description": "Retrieves the state of the extension's access to the 'file://' scheme (as determined by the user-controlled 'Allow access to File URLs' checkbox.",
         "min_version": "12.0.706.0",
@@ -184,8 +180,9 @@
       },
       {
         "name": "setUpdateUrlData",
+        "unsupported": true,
         "type": "function",
-        "description": "Sets the value of the ap CGI parameter used in the extension's update URL.  This value is ignored for extensions that are hosted in the Chrome Extension Gallery.",
+        "description": "Sets the value of the ap CGI parameter used in the extension's update URL.  This value is ignored for extensions that are hosted in the browser vendor's store.",
         "parameters": [
           {"type": "string", "name": "data", "maxLength": 1024}
         ]
@@ -194,6 +191,7 @@
     "events": [
       {
         "name": "onRequest",
+        "unsupported": true,
         "deprecated": "Please use $(ref:runtime.onMessage).",
         "type": "function",
         "options": {
@@ -208,6 +206,7 @@
       },
       {
         "name": "onRequestExternal",
+        "unsupported": true,
         "deprecated": "Please use $(ref:runtime.onMessageExternal).",
         "type": "function",
         "description": "Fired when a request is sent from another extension.",
