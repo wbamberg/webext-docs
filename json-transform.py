@@ -445,12 +445,8 @@ def generate_event(json_name, ns, func):
     print >>out, 'browser.{}.{}.hasListener(listener)'.format(ns['namespace'], func['name'])
     print >>out, '</pre>'    
     
-    add_listener_params = "callback"
-    
     extra_params = func.get('extraParameters', [])
-    if len(extra_params) > 0:
-        add_listener_params += ", "
-        add_listener_params += ", ".join([extra_param['name'] for extra_param in extra_params])
+    add_listener_params = ", ".join(["callback"] + [extra_param['name'] for extra_param in extra_params])
     
     print >>out, '<h3>addListener({})</h3>'.format(add_listener_params)
     print >>out, '<p>Adds a listener to this event.</p>'
@@ -458,15 +454,14 @@ def generate_event(json_name, ns, func):
     print >>out, '<dl>'
     print >>out, '<dt><code>callback</code></dt>'
     
-    callback_desc = "Function that will be called when this event occurs."
+    callback_desc = "<p>Function that will be called when this event occurs."
     
     if len(params) > 0:
-
         callback_desc += " The function will be passed the following arguments:</p>"
         
         for param in params:
             param_name = param['name']
-            if (param_name == "details"):
+            if param_name == "details":
                 callback_desc += '<dl><dt><code>details</code></dt><dd>An object providing details about the event. This object has the following structure:</p>'
             else:
                 callback_desc += '<dl><dt><code>{}</code></dt><dd>{}'.format(param['name'], param.get('description', ''))
@@ -488,7 +483,6 @@ def generate_event(json_name, ns, func):
     print >>out, '<dd>{}</dd>'.format(callback_desc)
         
     if len(extra_params):
-    
         print >>out, '<dl>'
         for param in extra_params:
             print >>out, '<dt><code>{}</code> : {}</dt>'.format(param['name'], describe_type(ns, param))
