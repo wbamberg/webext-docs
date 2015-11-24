@@ -205,7 +205,7 @@ def describe_object(ns, obj, anchor=False):
 
     desc = ''
     desc += '''
-    <table class="standard-table fullwidth-table">
+    <table class="standard-table">
       <thead>
         <tr>
           <th scope="col" style="width: 20%;">Name</th>
