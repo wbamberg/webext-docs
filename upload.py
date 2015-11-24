@@ -24,9 +24,18 @@ def upload(ns, name, head, data):
     r = requests.put(url, auth=(user, passwd), headers=headers, data=content)
     print r.status_code
 
+def read_head(f):
+    head = ''
+    while True:
+        line = f.readline()
+        head += line
+        if '}' in line:
+            break
+    return head
+
 def upload_file(ns, name, fpath):
     f = open(fpath)
-    head = f.readline()
+    head = read_head(f)
     data = f.read()
     upload(ns, name, head, data)
     f.close()
@@ -40,6 +49,6 @@ for ns in os.listdir(sys.argv[1]):
 
         fpath = os.path.join(path, name)
         f = open(fpath)
-        head = f.readline()
+        head = read_head(f)
         data = f.read()
         upload(ns, name, head, data)
