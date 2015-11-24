@@ -95,10 +95,10 @@ COMPAT_TABLE = '''
   </tr>
   <tr>
    <td>Basic support</td>
+   <td>{{ CompatChrome('46') }}</td>
    <td>{{ CompatUnknown() }}</td>
-   <td>{{ CompatUnknown() }}</td>
-   <td>{{ CompatUnknown() }}</td>
-   <td>{{ CompatUnknown() }}</td>
+   <td>{{ %s }}</td>
+   <td>{{ CompatOpera('33') }}</td>
   </tr>
  </tbody>
 </table>
@@ -113,9 +113,9 @@ COMPAT_TABLE = '''
    <th>Firefox Mobile (Gecko)</th>
   <tr>
    <td>Basic support</td>
-   <td>{{ CompatUnknown() }}</td>
-   <td>{{ CompatUnknown() }}</td>
-   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatNo() }}</td>
+   <td>{{ CompatNo() }}</td>
+   <td>{{ CompatNo() }}</td>
   </tr>
  </tbody>
 </table>
@@ -317,7 +317,10 @@ def generate_function(json_name, ns, func):
         print >>out, '<h3 id="Returns">Returns</h3>'
         print >>out, '<p>{}</p>'.format(func['returns']['description'])
 
-    print >>out, COMPAT_TABLE
+    ff_support = "CompatGeckoDesktop('45.0')"
+    if func.get('unsupported', False):
+        ff_support = "CompatNo()"
+    print >>out, COMPAT_TABLE%(ff_support)
     generate_acknowledgement(out, json_name, ns['namespace'], 'method-' + func['name'])
 
     out.close()
@@ -370,7 +373,10 @@ def generate_type(json_name, ns, t):
         print t
         raise 'UNKNOWN'
 
-    print >>out, COMPAT_TABLE
+    ff_support = "CompatGeckoDesktop('45.0')"
+    if t.get('unsupported', False):
+        ff_support = "CompatNo()"
+    print >>out, COMPAT_TABLE%(ff_support)
     generate_acknowledgement(out, json_name, ns['namespace'], 'type-' + t['id'])
 
     out.close()
@@ -393,7 +399,10 @@ def generate_property(json_name, ns, name, prop):
     print >>out, '{{AddonSidebar()}}'
     print >>out, '<p>{}</p>'.format(prop.get('description', name))
 
-    print >>out, COMPAT_TABLE
+    ff_support = "CompatGeckoDesktop('45.0')"
+    if prop.get('unsupported', False):
+        ff_support = "CompatNo()"
+    print >>out, COMPAT_TABLE%(ff_support)
     generate_acknowledgement(out, json_name, ns['namespace'], 'property-' + name)
 
     out.close()
@@ -517,7 +526,10 @@ def generate_event(json_name, ns, func):
     print >>out, '<h4>Returns</h4>'
     print >>out, '<p>Boolean: <code>true</code> if the given listener is registered, <code>false</code> otherwise.'
 
-    print >>out, COMPAT_TABLE
+    ff_support = "CompatGeckoDesktop('45.0')"
+    if func.get('unsupported', False):
+        ff_support = "CompatNo()"
+    print >>out, COMPAT_TABLE%(ff_support)
     generate_acknowledgement(out, json_name, ns['namespace'], 'event-' + func['name'])
 
     out.close()
@@ -611,7 +623,8 @@ def generate(name):
                     print >>out, '<dd>{}</dd>'.format(func['description'])
             print >>out, '</dl>'
 
-        print >>out, COMPAT_TABLE
+        ff_support = "CompatGeckoDesktop('45.0')"
+        print >>out, COMPAT_TABLE%(ff_support)
         print >>out, '{{WebExtCompat()}}'
 
         generate_acknowledgement(out, name, ns['namespace'])
