@@ -143,11 +143,34 @@ def get_api_component_tags(out, namespace, name, component_type):
     tags += '"{}"] '.format(component_type)
     return tags
 
-def describe_type(ns, t):
+def collect_anonymous_objects(ns, obj, anonymous_objects):
+    props = obj.get('properties')
+    if not props:
+        return
+    for prop_name in props:
+        prop = props[prop_name]
+        if 'type' in prop and prop['type'] == 'object' and 'properties' in prop:
+            anonymous_objects[prop_name] = prop
+            collect_anonymous_objects(ns, prop, anonymous_objects)
+
+def describe_anonymous_objects(ns, anonymous_objects, out):
+    if len(anonymous_objects) == 0:
+        return
+    print >>out, '<h2>Anonymous objects</h2>'
+    for anon in anonymous_objects:
+        anon_object = anonymous_objects.get(anon)
+        if 'properties' in anon_object:
+            print >>out, '<h3>{}</h3>'.format(anon)
+            print >>out, anon_object.get('description')
+            print >>out, describe_object(ns, anon_object)
+
+def describe_type(ns, t, name = None):
     def simple_describe(ns, t):
         if 'type' in t:
             if t['type'] == 'array':
                 return simple_describe(ns, t['items']) + ' array'
+            elif name and t['type'] == 'object' and 'properties' in t:
+                return '<a href="#{}">{}</a>'.format(name, t['type'])
             else:
                 return t['type']
         elif 'choices' in t:
@@ -192,7 +215,7 @@ def describe_object(ns, obj, anchor=False):
 
     for prop in props:
         desc += '  <tr>\n'
-        desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop]))
+        desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop], prop))
         if anchor:
             desc += '    <td><code><a name="{}"><b>{}</b></a></code></td>\n'.format(prop, prop)
         else:
@@ -302,6 +325,9 @@ def generate_function(json_name, ns, func):
 
     print >>out, '<h3 id="Parameters">Parameters</h3>'
     print >>out, '<dl>'
+    
+    anonymous_objects = {}
+
     for param in func['parameters']:
         print >>out, '<dt><code>{}</code> : {}</dt>'.format(param['name'], describe_type(ns, param))
 
@@ -309,6 +335,8 @@ def generate_function(json_name, ns, func):
 
         if param.get('type') == 'object':
             desc += describe_object(ns, param)
+            collect_anonymous_objects(ns, param, anonymous_objects)
+
         elif param.get('type') == 'function':
             desc += describe_function(ns, param)
         if desc:
@@ -319,6 +347,8 @@ def generate_function(json_name, ns, func):
     if 'returns' in func and 'description' in func['returns']:
         print >>out, '<h3 id="Returns">Returns</h3>'
         print >>out, '<p>{}</p>'.format(func['returns']['description'])
+
+    describe_anonymous_objects(ns, anonymous_objects, out)
 
     ff_support = "CompatGeckoDesktop('45.0')"
     if func.get('unsupported', False):
@@ -348,9 +378,12 @@ def generate_type(json_name, ns, t):
 
     print >>out, '<h2 id="Type">Type</h2>'
 
+    anonymous_objects = {}
+
     if t['type'] == 'object':
         print >>out, '<p>Values of this type are objects.</p>'
         print >>out, describe_object(ns, t, True)
+        collect_anonymous_objects(ns, t, anonymous_objects)
     elif t['type'] == 'string':
         print >>out, '<p>Values of this type are strings.'
         if 'enum' in t:
@@ -375,6 +408,8 @@ def generate_type(json_name, ns, t):
     else:
         print t
         raise 'UNKNOWN'
+
+    describe_anonymous_objects(ns, anonymous_objects, out)
 
     ff_support = "CompatGeckoDesktop('45.0')"
     if t.get('unsupported', False):
@@ -467,7 +502,8 @@ def generate_event(json_name, ns, func):
     print >>out, '<dt><code>callback</code></dt>'
     
     callback_desc = "<p>Function that will be called when this event occurs."
-    
+    anonymous_objects = {}
+
     if len(params) > 0:
         callback_desc += " The function will be passed the following arguments:</p>"
         
@@ -480,6 +516,7 @@ def generate_event(json_name, ns, func):
 
             if param.get('type') == 'object':
                 callback_desc += describe_object(ns, param)
+                collect_anonymous_objects(ns, param, anonymous_objects)
             elif param.get('type') == 'function':
                 callback_desc += describe_function(ns, param)
             callback_desc += "</dd></dl>"
@@ -503,6 +540,7 @@ def generate_event(json_name, ns, func):
 
             if param.get('type') == 'object':
                 desc += describe_object(ns, param)
+                collect_anonymous_objects(ns, param, anonymous_objects)
             elif param.get('type') == 'function':
                 desc += describe_function(param)
             if desc:
@@ -528,6 +566,8 @@ def generate_event(json_name, ns, func):
     
     print >>out, '<h4>Returns</h4>'
     print >>out, '<p>Boolean: <code>true</code> if the given listener is registered, <code>false</code> otherwise.'
+
+    describe_anonymous_objects(ns, anonymous_objects, out)
 
     ff_support = "CompatGeckoDesktop('45.0')"
     if func.get('unsupported', False):
