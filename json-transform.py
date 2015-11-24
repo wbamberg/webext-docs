@@ -182,7 +182,7 @@ def describe_param(ns, param):
     else:
         return (param['name'], describe_type(ns, param))
 
-def describe_object(ns, obj):
+def describe_object(ns, obj, anchor=False):
     props = obj.get('properties')
     if not props:
         return ''
@@ -193,7 +193,10 @@ def describe_object(ns, obj):
     for prop in props:
         desc += '  <tr>\n'
         desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop]))
-        desc += '    <td><code><b>{}</b></code></td>\n'.format(prop)
+        if anchor:
+            desc += '    <td><code><a name="{}"><b>{}</b></a></code></td>\n'.format(prop, prop)
+        else:
+            desc += '    <td><code><b>{}</b></code></td>\n'.format(prop)
         desc += '    <td>{}</td>\n'.format(props[prop].get('description', ''))
         desc += '  </td>\n'
 
@@ -347,7 +350,7 @@ def generate_type(json_name, ns, t):
 
     if t['type'] == 'object':
         print >>out, '<p>Values of this type are objects.</p>'
-        print >>out, describe_object(ns, t)
+        print >>out, describe_object(ns, t, True)
     elif t['type'] == 'string':
         print >>out, '<p>Values of this type are strings.'
         if 'enum' in t:
@@ -544,16 +547,24 @@ def generate(name):
     text = open(in_path).read()
     
     # convert inline references from $(ref:<name>) to {{wexref(name)}}
-    def convert_reference(reference):
-        link_text = reference.group(0)[6:-1]
+    def convert_reference(match):
+        link_text = match.group(1)
         components = link_text.split('.')
         if len(components) > 2:
             link_target = components[0] + "." + components[1]
-            return "{{{{wexref('{}', '{}')}}}}".format(link_target, link_text)
+            remainder = components[2:]
+            return "{{{{wexref('{}', '{}', '{}')}}}}".format(link_target, link_target, remainder)
         return "{{{{wexref('{}')}}}}".format(link_text)
-    
-    text = re.sub(r'\$\(ref:.*?\)', convert_reference, text)
-    
+
+    text = re.sub(r'\$\(ref:([^)]*)\)', convert_reference, text)
+
+    # convert inline references from $(topic:<name>) to {{wetopic(name)}}
+    def convert_topic(match):
+        topic = match.group(1)
+        return "{{{{wetopic('{}')}}}}".format(topic)
+
+    text = re.sub(r'\$\(topic:([^)]*)\)', convert_topic, text)
+
     lines = text.split('\n')
     lines = [ line for line in lines if not line.strip().startswith('//') ]
     text = '\n'.join(lines)
