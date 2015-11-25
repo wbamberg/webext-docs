@@ -165,32 +165,25 @@ def describe_anonymous_objects(ns, anonymous_objects, out):
             print >>out, describe_object(ns, anon_object)
 
 def describe_type(ns, t, name = None):
-    def simple_describe(ns, t):
-        if 'type' in t:
-            if t['type'] == 'array':
-                return simple_describe(ns, t['items']) + ' array'
-            elif name and t['type'] == 'object' and 'properties' in t:
-                return '<a href="#{}">{}</a>'.format(name, t['type'])
-            else:
-                return t['type']
-        elif 'choices' in t:
-            return ' or '.join([ simple_describe(ns, t2) for t2 in t['choices'] ])
-        elif '$ref' in t:
-            ref = t['$ref']
-            ref_components = ref.split(".")
-            if len(ref_components) == 1:
-                return "{{{{wexref('{}')}}}}".format(ns['namespace'] + "." + ref)
-            else:
-                return "{{{{wexref('{}')}}}}".format(ref)
+    if 'type' in t:
+        if t['type'] == 'array':
+            return describe_type(ns, t['items']) + ' array'
+        elif name and t['type'] == 'object' and 'properties' in t:
+            return '<a href="#{}">{}</a>'.format(name, t['type'])
         else:
-            print 'UNKNOWN', t
-            raise 'BAD'
-
-    base = simple_describe(ns, t)
-    if t.get('optional', False):
-        return 'optional {}'.format(base)
+            return t['type']
+    elif 'choices' in t:
+        return ' or '.join([ describe_type(ns, t2) for t2 in t['choices'] ])
+    elif '$ref' in t:
+        ref = t['$ref']
+        ref_components = ref.split(".")
+        if len(ref_components) == 1:
+            return "{{{{wexref('{}')}}}}".format(ns['namespace'] + "." + ref)
+        else:
+            return "{{{{wexref('{}')}}}}".format(ref)
     else:
-        return base
+        print 'UNKNOWN', t
+        raise 'BAD'
 
 def function_example(param):
     if 'parameters' in param:
@@ -211,17 +204,32 @@ def describe_object(ns, obj, anchor=False):
         return ''
 
     desc = ''
-    desc += '<table class="standard-table"><tbody>\n'
-
+    desc += '''
+    <table class="standard-table">
+      <thead>
+        <tr>
+          <th scope="col" style="width: 20%;">Name</th>
+          <th scope="col" colspan="2" rowspan="1">Type</th>
+          <th scope="col" style="width: 50%;">Description</th>
+        </tr>
+      </thead>
+      <tbody>\n
+ '''
     for prop in props:
         desc += '  <tr>\n'
-        desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop], prop))
+        # Name
         if anchor:
             desc += '    <td><code><a name="{}"><b>{}</b></a></code></td>\n'.format(prop, prop)
         else:
             desc += '    <td><code><b>{}</b></code></td>\n'.format(prop)
+        # Type
+        if props[prop].get('optional'):
+            desc += '    <td><code>{}</code></td>\n'.format(describe_type(ns, props[prop], prop))
+            desc += '    <td>Optional</td>\n'
+        else:
+            desc += '    <td colspan="2" rowspan="1"><code>{}</code></td>\n'.format(describe_type(ns, props[prop], prop))
         desc += '    <td>{}</td>\n'.format(props[prop].get('description', ''))
-        desc += '  </td>\n'
+        desc += '  </tr>\n'
 
     desc += '</tbody></table>\n'
 
