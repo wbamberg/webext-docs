@@ -178,9 +178,9 @@ def describe_type(ns, t, name = None):
         ref = t['$ref']
         ref_components = ref.split(".")
         if len(ref_components) == 1:
-            return "{{{{wexref('{}')}}}}".format(ns['namespace'] + "." + ref)
+            return "{{{{WebExtAPIRef('{}')}}}}".format(ns['namespace'] + "." + ref)
         else:
-            return "{{{{wexref('{}')}}}}".format(ref)
+            return "{{{{WebExtAPIRef('{}')}}}}".format(ref)
     else:
         print 'UNKNOWN', t
         raise 'BAD'
@@ -362,6 +362,7 @@ def generate_function(json_name, ns, func):
     if func.get('unsupported', False):
         ff_support = "CompatNo()"
     print >>out, COMPAT_TABLE%(ff_support)
+    print >>out, '{{WebExtExamples}}'
     generate_acknowledgement(out, json_name, ns['namespace'], 'method-' + func['name'])
 
     out.close()
@@ -381,7 +382,7 @@ def generate_type(json_name, ns, t):
     print >>out, get_api_component_tags(out, ns['namespace'], t['id'], "Type")
     print >>out, "}"
 
-    print >>out, '{{AddonSidebar()}}'
+    print >>out, '{{AddonSidebar}}'
     print >>out, '<p>{}</p>'.format(t.get('description', t['id']))
 
     print >>out, '<h2 id="Type">Type</h2>'
@@ -423,6 +424,7 @@ def generate_type(json_name, ns, t):
     if t.get('unsupported', False):
         ff_support = "CompatNo()"
     print >>out, COMPAT_TABLE%(ff_support)
+    print >>out, '{{WebExtExamples}}'
     generate_acknowledgement(out, json_name, ns['namespace'], 'type-' + t['id'])
 
     out.close()
@@ -442,13 +444,14 @@ def generate_property(json_name, ns, name, prop):
     print >>out, get_api_component_tags(out, ns['namespace'], name, "Property")
     print >>out, "}"
 
-    print >>out, '{{AddonSidebar()}}'
+    print >>out, '{{AddonSidebar}}'
     print >>out, '<p>{}</p>'.format(prop.get('description', name))
 
     ff_support = "CompatGeckoDesktop('45.0')"
     if prop.get('unsupported', False):
         ff_support = "CompatNo()"
     print >>out, COMPAT_TABLE%(ff_support)
+    print >>out, '{{WebExtExamples}}'
     generate_acknowledgement(out, json_name, ns['namespace'], 'property-' + name)
 
     out.close()
@@ -468,7 +471,7 @@ def generate_event(json_name, ns, func):
     print >>out, get_api_component_tags(out, ns['namespace'], func["name"], "Event")
     print >>out, "}"
 
-    print >>out, '{{AddonSidebar()}}'
+    print >>out, '{{AddonSidebar}}'
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
     print >>out, '<h2 id="Syntax">Syntax</h2>'
@@ -581,6 +584,7 @@ def generate_event(json_name, ns, func):
     if func.get('unsupported', False):
         ff_support = "CompatNo()"
     print >>out, COMPAT_TABLE%(ff_support)
+    print >>out, '{{WebExtExamples}}'
     generate_acknowledgement(out, json_name, ns['namespace'], 'event-' + func['name'])
 
     out.close()
@@ -594,15 +598,15 @@ def generate(name):
 
     text = open(in_path).read()
     
-    # convert inline references from $(ref:<name>) to {{wexref(name)}}
+    # convert inline references from $(ref:<name>) to {{WebExtAPIRef(name)}}
     def convert_reference(match):
         link_text = match.group(1)
         components = link_text.split('.')
         if len(components) > 2:
             link_target = components[0] + "." + components[1]
             remainder = components[2:]
-            return "{{{{wexref('{}', '{}', '{}')}}}}".format(link_target, link_target, remainder)
-        return "{{{{wexref('{}')}}}}".format(link_text)
+            return "{{{{WebExtAPIRef('{}', '{}', '{}')}}}}".format(link_target, link_target, remainder)
+        return "{{{{WebExtAPIRef('{}')}}}}".format(link_text)
 
     text = re.sub(r'\$\(ref:([^)]*)\)', convert_reference, text)
 
@@ -641,14 +645,14 @@ def generate(name):
         print >>out, get_api_tags(out, title)
         print >>out, "}"
 
-        print >>out, '{{AddonSidebar()}}'
+        print >>out, '{{AddonSidebar}}'
         print >>out, '<p>{}</p>'.format(ns.get('description', ns['namespace']))
 
         if 'types' in ns:
             print >>out, '<h2 id="Types">Types</h2>'
             print >>out, '<dl>'
             for t in ns.get('types', []):
-                print >>out, '<dt>{{{{wexref("{}.{}")}}}}</dt>'.format(title, t['id'])
+                print >>out, '<dt>{{{{WebExtAPIRef("{}.{}")}}}}</dt>'.format(title, t['id'])
                 if 'description' in t:
                     print >>out, '<dd>{}</dd>'.format(t['description'])
             print >>out, '</dl>'
@@ -657,7 +661,7 @@ def generate(name):
             print >>out, '<h2 id="Properties">Properties</h2>'
             print >>out, '<dl>'
             for prop in ns.get('properties', []):
-                print >>out, '<dt>{{{{wexref("{}.{}")}}}}</dt>'.format(title, prop)
+                print >>out, '<dt>{{{{WebExtAPIRef("{}.{}")}}}}</dt>'.format(title, prop)
                 if 'description' in ns['properties'][prop]:
                     print >>out, '<dd>{}</dd>'.format(ns['properties'][prop]['description'])
             print >>out, '</dl>'
@@ -667,7 +671,7 @@ def generate(name):
             print >>out, '<dl>'
             for func in ns.get('functions', []):
                 args = ', '.join([ p['name'] for p in func['parameters'] ])
-                print >>out, '<dt>{{{{wexref("{}.{}()")}}}}</dt>'.format(title, func['name'])
+                print >>out, '<dt>{{{{WebExtAPIRef("{}.{}()")}}}}</dt>'.format(title, func['name'])
                 if 'description' in func:
                     print >>out, '<dd>{}</dd>'.format(func['description'])
             print >>out, '</dl>'
@@ -677,14 +681,15 @@ def generate(name):
             print >>out, '<dl>'
             for func in ns.get('events', []):
                 args = ', '.join([ p['name'] for p in func.get('parameters', []) ])
-                print >>out, '<dt>{{{{wexref("{}.{}")}}}}</dt>'.format(title, func['name'])
+                print >>out, '<dt>{{{{WebExtAPIRef("{}.{}")}}}}</dt>'.format(title, func['name'])
                 if 'description' in func:
                     print >>out, '<dd>{}</dd>'.format(func['description'])
             print >>out, '</dl>'
 
         ff_support = "CompatGeckoDesktop('45.0')"
         print >>out, COMPAT_TABLE%(ff_support)
-        print >>out, '{{WebExtCompat()}}'
+        print >>out, '{{WebExtChromeCompat}}'
+        print >>out, '{{WebExtExamples}}'
 
         generate_acknowledgement(out, name, ns['namespace'])
 
