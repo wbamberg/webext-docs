@@ -264,7 +264,7 @@ def describe_enum(enum):
 
         for e in enum:
             desc += '  <tr>\n'
-            desc += '    <td><code><b>{}</b></code></td>\n'.format(e['name'])
+            desc += '    <td><code>{}</code></td>\n'.format(e['name'])
             desc += '    <td>{}</td>\n'.format(e['description'])
             desc += '  </td>\n'
 
@@ -523,7 +523,8 @@ def generate_event(json_name, ns, func):
             if param_name == "details":
                 callback_desc += '<dl><dt><code>details</code></dt><dd><p>An object providing details about the event. This object has the following structure:</p>'
             else:
-                callback_desc += '<dl><dt><code>{}</code></dt><dd>{}'.format(param['name'], param.get('description', ''))
+                callback_desc += '<dl><dt><code>{}</code></dt>'.format(param['name'])
+                callback_desc += '<dd>{}. {}'.format(describe_type(ns, param, param['name']), param.get('description', ''))
 
             if param.get('type') == 'object':
                 callback_desc += describe_object(ns, param)
