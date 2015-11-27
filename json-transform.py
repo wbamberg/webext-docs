@@ -284,6 +284,33 @@ def describe_function(ns, func):
 
     return desc
 
+def generate_preamble(namespace, name, kind):
+    os.system('mkdir -p {}'.format(os.path.join(out_dir, namespace)))
+    slug = namespace + '/' + name
+    out = open(os.path.join(out_dir, slug), 'w')
+
+    title = namespace + '.' + name
+    if kind == 'Method':
+        title += '()'
+
+    print >>out, '{'
+    print >>out, '"title": "{}",'.format(title)
+    print >>out, '"show_toc": 0,'
+    print >>out, get_api_component_tags(out, namespace, name, kind)
+    print >>out, "}"
+
+    print >>out, '{{AddonSidebar()}}'
+    
+    return out
+
+def generate_postamble(namespace, name, obj, kind, json_name, out):
+    ff_support = "CompatGeckoDesktop('45.0')"
+    if obj.get('unsupported', False):
+        ff_support = "CompatNo()"
+    print >>out, COMPAT_TABLE%(ff_support)
+    print >>out, '{{WebExtExamples}}'
+    generate_acknowledgement(out, json_name, namespace, kind + name)
+
 def generate_acknowledgement(out, json_name, ns, anchor = None):
     print >>out, '<div class="note">'
     print >>out, '<strong>Acknowledgements</strong>'
@@ -306,21 +333,8 @@ def generate_acknowledgement(out, json_name, ns, anchor = None):
     print >>out, '</pre></div>'
 
 def generate_function(json_name, ns, func):
-    #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
+    out = generate_preamble(ns['namespace'], func['name'], "Method")
 
-    os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
-    slug = ns['namespace'] + '/' + func['name']
-    out = open(os.path.join(out_dir, slug), 'w')
-
-    title = ns['namespace'] + '.' + func['name'] + '()'
-
-    print >>out, '{'
-    print >>out, '"title": "{}",'.format(title)
-    print >>out, '"show_toc": 0,'
-    print >>out, get_api_component_tags(out, ns['namespace'], func['name'], "Method")
-    print >>out, "}"
-
-    print >>out, '{{AddonSidebar()}}'
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
     print >>out, '<h2 id="Syntax">Syntax</h2>'
@@ -376,31 +390,13 @@ def generate_function(json_name, ns, func):
 
     describe_anonymous_objects(ns, anonymous_objects, out)
 
-    ff_support = "CompatGeckoDesktop('45.0')"
-    if func.get('unsupported', False):
-        ff_support = "CompatNo()"
-    print >>out, COMPAT_TABLE%(ff_support)
-    print >>out, '{{WebExtExamples}}'
-    generate_acknowledgement(out, json_name, ns['namespace'], 'method-' + func['name'])
+    generate_postamble(ns['namespace'], func['name'], func, 'method-', json_name, out)
 
     out.close()
 
 def generate_type(json_name, ns, t):
-    #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
+    out = generate_preamble(ns['namespace'], t['id'], "Type")
 
-    os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
-    slug = ns['namespace'] + '/' + t['id']
-    out = open(os.path.join(out_dir, slug), 'w')
-
-    title = ns['namespace'] + '.' + t['id']
-
-    print >>out, '{'
-    print >>out, '"title": "{}",'.format(title)
-    print >>out, '"show_toc": 0,'
-    print >>out, get_api_component_tags(out, ns['namespace'], t['id'], "Type")
-    print >>out, "}"
-
-    print >>out, '{{AddonSidebar}}'
     print >>out, '<p>{}</p>'.format(t.get('description', t['id']))
 
     print >>out, '<h2 id="Type">Type</h2>'
@@ -438,58 +434,22 @@ def generate_type(json_name, ns, t):
 
     describe_anonymous_objects(ns, anonymous_objects, out)
 
-    ff_support = "CompatGeckoDesktop('45.0')"
-    if t.get('unsupported', False):
-        ff_support = "CompatNo()"
-    print >>out, COMPAT_TABLE%(ff_support)
-    print >>out, '{{WebExtExamples}}'
-    generate_acknowledgement(out, json_name, ns['namespace'], 'type-' + t['id'])
+    generate_postamble(ns['namespace'], t['id'], t, 'type-', json_name, out)
 
     out.close()
 
 def generate_property(json_name, ns, name, prop):
-    #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
+    out = generate_preamble(ns['namespace'], name, "Property")
 
-    os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
-    slug = ns['namespace'] + '/' + name
-    out = open(os.path.join(out_dir, slug), 'w')
-
-    title = ns['namespace'] + '.' + name
-
-    print >>out, '{'
-    print >>out, '"title": "{}",'.format(title)
-    print >>out, '"show_toc": 0,'
-    print >>out, get_api_component_tags(out, ns['namespace'], name, "Property")
-    print >>out, "}"
-
-    print >>out, '{{AddonSidebar}}'
     print >>out, '<p>{}</p>'.format(prop.get('description', name))
 
-    ff_support = "CompatGeckoDesktop('45.0')"
-    if prop.get('unsupported', False):
-        ff_support = "CompatNo()"
-    print >>out, COMPAT_TABLE%(ff_support)
-    print >>out, '{{WebExtExamples}}'
-    generate_acknowledgement(out, json_name, ns['namespace'], 'property-' + name)
+    generate_postamble(ns['namespace'], name, prop, 'property-', json_name, out)
 
     out.close()
 
 def generate_event(json_name, ns, func):
-    #print '<p>{{ WebExtRef("{}") }}</p>'.format(ns.name)
+    out = generate_preamble(ns['namespace'], func['name'], "Event")
 
-    os.system('mkdir -p {}'.format(os.path.join(out_dir, ns['namespace'])))
-    slug = ns['namespace'] + '/' + func['name']
-    out = open(os.path.join(out_dir, slug), 'w')
-
-    title = ns['namespace'] + '.' + func['name']
-
-    print >>out, '{'
-    print >>out, '"title": "{}",'.format(title)
-    print >>out, '"show_toc": 0,'
-    print >>out, get_api_component_tags(out, ns['namespace'], func["name"], "Event")
-    print >>out, "}"
-
-    print >>out, '{{AddonSidebar}}'
     print >>out, '<p>{}</p>'.format(func.get('description', func['name']))
 
     print >>out, '<h2 id="Syntax">Syntax</h2>'
@@ -603,12 +563,7 @@ def generate_event(json_name, ns, func):
 
     describe_anonymous_objects(ns, anonymous_objects, out)
 
-    ff_support = "CompatGeckoDesktop('45.0')"
-    if func.get('unsupported', False):
-        ff_support = "CompatNo()"
-    print >>out, COMPAT_TABLE%(ff_support)
-    print >>out, '{{WebExtExamples}}'
-    generate_acknowledgement(out, json_name, ns['namespace'], 'event-' + func['name'])
+    generate_postamble(ns['namespace'], func['name'], func, 'event-', json_name, out)
 
     out.close()
 
