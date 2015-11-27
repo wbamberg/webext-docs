@@ -161,19 +161,19 @@ def describe_anonymous_objects(ns, anonymous_objects, out):
         anon_object = anonymous_objects.get(anon)
         if 'properties' in anon_object:
             print >>out, '<h3>{}</h3>'.format(anon)
-            print >>out, anon_object.get('description')
+            print >>out, '<p>{}</p>'.format(anon_object.get('description'))
             print >>out, describe_object(ns, anon_object)
 
 def describe_type(ns, t, name = None):
     if 'type' in t:
         if t['type'] == 'array':
-            return describe_type(ns, t['items']) + ' array'
+            return '<code>array</code> of <code>{}</code>'.format(describe_type(ns, t['items']))
         elif name and t['type'] == 'object' and 'properties' in t:
-            return '<a href="#{}">{}</a>'.format(name, t['type'])
+            return '<a href="#{}"><code>{}</code></a>'.format(name, t['type'])
         else:
-            return t['type']
+            return '<code>{}</code>'.format(t['type'])
     elif 'choices' in t:
-        return ' or '.join([ describe_type(ns, t2) for t2 in t['choices'] ])
+        return ' or '.join([ '<code>{}</code>'.format(describe_type(ns, t2)) for t2 in t['choices'] ])
     elif '$ref' in t:
         ref = t['$ref']
         ref_components = ref.split(".")
@@ -214,20 +214,20 @@ def describe_object(ns, obj, anchor=False):
         </tr>
       </thead>
       <tbody>\n
- '''
+    '''
     for prop in props:
         desc += '  <tr>\n'
         # Name
         if anchor:
-            desc += '    <td><code><a name="{}"><b>{}</b></a></code></td>\n'.format(prop, prop)
+            desc += '    <td><code><a name="{}">{}</a></code></td>\n'.format(prop, prop)
         else:
-            desc += '    <td><code><b>{}</b></code></td>\n'.format(prop)
+            desc += '    <td><code>{}</code></td>\n'.format(prop)
         # Type
         if props[prop].get('optional'):
-            desc += '    <td><code>{}</code></td>\n'.format(describe_type(ns, props[prop], prop))
+            desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop], prop))
             desc += '    <td>Optional</td>\n'
         else:
-            desc += '    <td colspan="2" rowspan="1"><code>{}</code></td>\n'.format(describe_type(ns, props[prop], prop))
+            desc += '    <td colspan="2" rowspan="1">{}</td>\n'.format(describe_type(ns, props[prop], prop))
         desc += '    <td>{}</td>\n'.format(props[prop].get('description', ''))
         desc += '  </tr>\n'
 
@@ -249,23 +249,36 @@ def describe_enum(enum):
         desc += '</tbody></table>\n'
         return desc
     else:
-        return 'Possible values are: {}'.format(', '.join([ '<code>"' + s + '"</code>' for s in enum ]))
+        return 'Possible values are: {}.'.format(', '.join([ '<code>"' + s + '"</code>' for s in enum ]))
 
 def describe_function(ns, func):
-    if 'parameters' not in func:
+    if 'parameters' not in func or len(func['parameters']) == 0:
         return ''
 
-    desc = ''
-    desc += '<code>{}</code>\n'.format(function_example(func))
-    desc += '<table class="standard-table"><tbody>\n'
-
+    desc = ' The function is passed the following arguments:'
+    desc += '''
+    <table class="standard-table">
+      <thead>
+        <tr>
+          <th scope="col" style="width: 20%;">Name</th>
+          <th scope="col" colspan="2" rowspan="1">Type</th>
+          <th scope="col" style="width: 50%;">Description</th>
+        </tr>
+      </thead>
+      <tbody>\n
+    '''
+ 
     for param in func['parameters']:
         desc += '  <tr>\n'
-        desc += '    <td>{}</td>\n'.format(describe_type(ns, param))
-        desc += '    <td><code><b>{}</b></code></td>\n'.format(param['name'])
-        if 'description' in param:
-            desc += '    <td>{}</td>\n'.format(param['description'])
-        desc += '  </td>\n'
+        desc += '    <td><code>{}</code></td>\n'.format(param['name'])
+
+        if param.get('optional'):
+            desc += '    <td>{}</td>\n'.format(describe_type(ns, param, param['name']))
+            desc += '    <td>Optional</td>\n'
+        else:
+            desc += '    <td colspan="2" rowspan="1">{}</td>\n'.format(describe_type(ns, param, param['name']))
+        desc += '    <td>{}</td>\n'.format(param.get('description', ''))
+        desc += '  </tr>\n'
 
     desc += '</tbody></table>\n'
 
@@ -337,9 +350,13 @@ def generate_function(json_name, ns, func):
     anonymous_objects = {}
 
     for param in func['parameters']:
-        print >>out, '<dt><code>{}</code> : {}</dt>'.format(param['name'], describe_type(ns, param))
+        if param.get('optional', False):
+            print >>out, '<dt><code>{}</code>{{{{optional_inline}}}}</dt>'.format(param['name'])
+        else:
+            print >>out, '<dt><code>{}</code></dt>'.format(param['name'])
 
-        desc = param.get('description', '')
+        desc = '{}. '.format(describe_type(ns, param))
+        desc += param.get('description', '')
 
         if param.get('type') == 'object':
             desc += describe_object(ns, param)
@@ -353,8 +370,9 @@ def generate_function(json_name, ns, func):
     print >>out, '</dl>'
 
     if 'returns' in func and 'description' in func['returns']:
-        print >>out, '<h3 id="Returns">Returns</h3>'
-        print >>out, '<p>{}</p>'.format(func['returns']['description'])
+        print >>out, '<h3>Return value</h3>'
+        print >>out, '<p>{}. '.format(describe_type(ns, func['returns']))
+        print >>out, '{}</p>'.format(func['returns']['description'])
 
     describe_anonymous_objects(ns, anonymous_objects, out)
 
@@ -521,7 +539,7 @@ def generate_event(json_name, ns, func):
         for param in params:
             param_name = param['name']
             if param_name == "details":
-                callback_desc += '<dl><dt><code>details</code></dt><dd>An object providing details about the event. This object has the following structure:</p>'
+                callback_desc += '<dl><dt><code>details</code></dt><dd><p>An object providing details about the event. This object has the following structure:</p>'
             else:
                 callback_desc += '<dl><dt><code>{}</code></dt><dd>{}'.format(param['name'], param.get('description', ''))
 
@@ -545,15 +563,20 @@ def generate_event(json_name, ns, func):
     if len(extra_params):
         print >>out, '<dl>'
         for param in extra_params:
-            print >>out, '<dt><code>{}</code> : {}</dt>'.format(param['name'], describe_type(ns, param))
+            if param.get('optional', False):
+                print >>out, '<dt><code>{}</code>{{{{optional_inline}}}}</dt>'.format(param['name'])
+            else:
+                print >>out, '<dt><code>{}</code></dt>'.format(param['name'])
 
-            desc = param.get('description', '')
+            desc = '{}. '.format(describe_type(ns, param))
+            desc += param.get('description', '')
 
             if param.get('type') == 'object':
                 desc += describe_object(ns, param)
                 collect_anonymous_objects(ns, param, anonymous_objects)
+
             elif param.get('type') == 'function':
-                desc += describe_function(param)
+                desc += describe_function(ns, param)
             if desc:
                 print >>out, '<dd>{}</dd>'.format(desc)
 
@@ -575,7 +598,7 @@ def generate_event(json_name, ns, func):
     print >>out, '<dd><code>Function</code>. The listener to check.</dd>'
     print >>out, '</dl>'
     
-    print >>out, '<h4>Returns</h4>'
+    print >>out, '<h4>Return value</h4>'
     print >>out, '<p>Boolean: <code>true</code> if the given listener is registered, <code>false</code> otherwise.'
 
     describe_anonymous_objects(ns, anonymous_objects, out)
@@ -612,10 +635,10 @@ def generate(name):
 
     # convert inline references from $(topic:<name>) to {{wetopic(name)}}
     def convert_topic(match):
-        topic = match.group(1)
-        return "{{{{wetopic('{}')}}}}".format(topic)
+        topic = match.group(2)
+        return topic
 
-    text = re.sub(r'\$\(topic:([^)]*)\)', convert_topic, text)
+    text = re.sub(r'<a href=\'\$\(topic:(.*?)\)\'>(.*?)</a>', convert_topic, text)
 
     lines = text.split('\n')
     lines = [ line for line in lines if not line.strip().startswith('//') ]
