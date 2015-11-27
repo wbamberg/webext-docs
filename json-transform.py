@@ -163,6 +163,27 @@ def describe_anonymous_objects(ns, anonymous_objects, out):
             print >>out, '<h3>{}</h3>'.format(anon)
             print >>out, '<p>{}</p>'.format(anon_object.get('description'))
             print >>out, describe_object(ns, anon_object)
+            
+def describe_type_as_text(t):
+    def simple_describe(t):
+        if 'type' in t:
+            if t['type'] == 'array':
+                return simple_describe(t['items']) + ' array'
+            else:
+                return t['type']
+        elif 'choices' in t:
+            return ' or '.join([ simple_describe(t2) for t2 in t['choices'] ])
+        elif '$ref' in t:
+            return t['$ref']
+        else:
+            print 'UNKNOWN', t
+            raise 'BAD'
+
+    base = simple_describe(t)
+    if t.get('optional', False):
+        return 'optional {}'.format(base)
+    else:
+        return base
 
 def describe_type(ns, t, name = None):
     if 'type' in t:
@@ -193,10 +214,11 @@ def function_example(param):
     return 'function({}) {{...}}'.format(fparams)
 
 def describe_param(ns, param):
+    param_type = describe_type_as_text(param)
     if param.get('type') == 'function':
-        return (function_example(param), describe_type(ns, param))
+        return (function_example(param), param_type)
     else:
-        return (param['name'], describe_type(ns, param))
+        return (param['name'], param_type)
 
 def describe_object(ns, obj, anchor=False):
     props = obj.get('properties')
