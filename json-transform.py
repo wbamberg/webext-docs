@@ -544,7 +544,6 @@ def generate_event(json_name, ns, func):
     print >>out, '<dd>{}</dd>'.format(callback_desc)
         
     if len(extra_params):
-        print >>out, '<dl>'
         for param in extra_params:
             if param.get('optional', False):
                 print >>out, '<dt><code>{}</code>{{{{optional_inline}}}}</dt>'.format(param['name'])
