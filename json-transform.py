@@ -45,7 +45,8 @@ JSON_SOURCES = {
     'storage': LINK2,
     'web_navigation': LINK1,
     'web_request': LINK2,
-    'extension_types': LINK2
+    'extension_types': LINK2,
+    'events': LINK2
 }
 
 CHROMIUM_DOCS = 'https://developer.chrome.com/extensions/'
@@ -95,8 +96,8 @@ COMPAT_TABLE = '''
   </tr>
   <tr>
    <td>Basic support</td>
-   <td>{{ CompatChrome('46') }}</td>
-   <td>{{ CompatUnknown() }}</td>
+   <td>{{ CompatVersionUnknown }}</td>
+   <td>{{ CompatUnknown }}</td>
    <td>{{ %s }}</td>
    <td>{{ CompatOpera('33') }}</td>
   </tr>
@@ -126,21 +127,21 @@ in_dir = sys.argv[1]
 out_dir = sys.argv[2]
 
 def get_common_tags(out, namespace):
-    common_tags = '"API", "Reference", "WebExtensions", "Add-ons", "Extensions", "Non-standard", '
-    common_tags += '"{}", '.format(namespace)
+    common_tags = 'API, Reference, WebExtensions, Add-ons, Extensions, Non-standard, '
+    common_tags += '{}, '.format(namespace)
     return common_tags
 
 def get_api_tags(out, namespace):
-    tags = '"tags": ['
+    tags = '"tags": "'
     tags += get_common_tags(out, namespace)
-    tags += '"{}"]'.format("Interface")
+    tags += '{}"'.format('Interface')
     return tags
 
 def get_api_component_tags(out, namespace, name, component_type):
-    tags = '"tags": ['
+    tags = '"tags": "'
     tags += get_common_tags(out, namespace)
-    tags += '"{}", '.format(name)
-    tags += '"{}"] '.format(component_type)
+    tags += '{}, '.format(name)
+    tags += '{}"'.format(component_type)
     return tags
 
 def collect_anonymous_objects(ns, obj, anonymous_objects):
@@ -524,7 +525,7 @@ def generate_event(json_name, ns, func):
                 callback_desc += '<dl><dt><code>details</code></dt><dd><p>An object providing details about the event. This object has the following structure:</p>'
             else:
                 callback_desc += '<dl><dt><code>{}</code></dt>'.format(param['name'])
-                callback_desc += '<dd>{}. {}'.format(describe_type(ns, param, param['name']), param.get('description', ''))
+                callback_desc += '<dd>{}. {}'.format(describe_type(ns, param), param.get('description', ''))
 
             if param.get('type') == 'object':
                 callback_desc += describe_object(ns, param)
