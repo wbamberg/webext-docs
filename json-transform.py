@@ -145,25 +145,51 @@ def get_api_component_tags(out, namespace, name, component_type):
     return tags
 
 def collect_anonymous_objects(ns, obj, anonymous_objects):
-    props = obj.get('properties')
-    if not props:
-        return
-    for prop_name in props:
-        prop = props[prop_name]
-        if 'type' in prop and prop['type'] == 'object' and 'properties' in prop:
-            anonymous_objects[prop_name] = prop
-            collect_anonymous_objects(ns, prop, anonymous_objects)
+    
+    def test_item(ns, item, anonymous_objects):
+        if 'choices' in item:
+            for choice in item['choices']:
+                choice['name'] = item['name']
+                test_item(ns, choice, anonymous_objects)
+        elif 'type' not in item:
+            return
+        elif item['type'] == 'object':
+            anonymous_objects.append(item)
+            collect_anonymous_objects(ns, item, anonymous_objects)
+        elif item['type'] == 'array':
+            array_contents = item['items']
+            if array_contents.get('type', None) == 'object':
+                array_contents['name'] = item['name']
+                anonymous_objects.append(array_contents)
+            collect_anonymous_objects(ns, item['items'], anonymous_objects)
+        elif item['type'] == 'function':
+            collect_anonymous_objects(ns, item, anonymous_objects)
+
+    object_type = obj.get('type', None)
+    if object_type == 'object':
+        props = obj.get('properties')
+        if not props:
+            return
+        for prop_name in props:
+            prop = props[prop_name]
+            prop['name'] = prop_name
+            test_item(ns, prop, anonymous_objects)
+    elif object_type == 'function':
+        if not 'parameters' in obj:
+            return
+        for param in obj['parameters']:
+            test_item(ns, param, anonymous_objects)
 
 def describe_anonymous_objects(ns, anonymous_objects, out):
     if len(anonymous_objects) == 0:
         return
-    print >>out, '<h2>Anonymous objects</h2>'
+    print >>out, '<h2>Additional objects</h2>'
     for anon in anonymous_objects:
-        anon_object = anonymous_objects.get(anon)
-        if 'properties' in anon_object:
-            print >>out, '<h3>{}</h3>'.format(anon)
-            print >>out, '<p>{}</p>'.format(anon_object.get('description'))
-            print >>out, describe_object(ns, anon_object)
+        if 'properties' in anon:
+            print >>out, '<h3>{}</h3>'.format(anon['name'])
+            if anon.get('description'):
+                print >>out, '<p>{}</p>'.format(anon.get('description'))
+            print >>out, describe_object(ns, anon)
             
 def describe_type_as_text(t):
     def simple_describe(t):
@@ -189,13 +215,16 @@ def describe_type_as_text(t):
 def describe_type(ns, t, name = None):
     if 'type' in t:
         if t['type'] == 'array':
-            return '<code>array</code> of <code>{}</code>'.format(describe_type(ns, t['items']))
+            if t['items'] and t['items'].get('type', None) and t['items']['type'] == 'object':
+                return '<code>array</code> of {}'.format(describe_type(ns, t['items'], name))
+            else:
+                return '<code>array</code> of <code>{}</code>'.format(describe_type(ns, t['items']))
         elif name and t['type'] == 'object' and 'properties' in t:
             return '<a href="#{}"><code>{}</code></a>'.format(name, t['type'])
         else:
             return '<code>{}</code>'.format(t['type'])
     elif 'choices' in t:
-        return ' or '.join([ '<code>{}</code>'.format(describe_type(ns, t2)) for t2 in t['choices'] ])
+        return ' or '.join([ '<code>{}</code>'.format(describe_type(ns, t2, name)) for t2 in t['choices'] ])
     elif '$ref' in t:
         ref = t['$ref']
         ref_components = ref.split(".")
@@ -384,7 +413,7 @@ def generate_function(json_name, ns, func):
     print >>out, '<h3 id="Parameters">Parameters</h3>'
     print >>out, '<dl>'
     
-    anonymous_objects = {}
+    anonymous_objects = []
 
     for param in func['parameters']:
         if param.get('optional', False):
@@ -397,19 +426,30 @@ def generate_function(json_name, ns, func):
 
         if param.get('type') == 'object':
             desc += describe_object(ns, param)
-            collect_anonymous_objects(ns, param, anonymous_objects)
-
         elif param.get('type') == 'function':
             desc += describe_function(ns, param)
+        elif param.get('choices'):
+            for choice in param['choices']:
+                if choice.get('type') == 'object':
+                    desc += describe_object(ns, choice)
+                elif choice.get('type') == 'function':
+                    desc += describe_function(ns, choice)
+
         if desc:
             print >>out, '<dd>{}</dd>'.format(desc)
+            
 
+        collect_anonymous_objects(ns, param, anonymous_objects)
+
+    if len(func['parameters']) == 0:
+        print >>out, "None."
     print >>out, '</dl>'
 
-    if 'returns' in func and 'description' in func['returns']:
+    if 'returns' in func:
         print >>out, '<h3>Return value</h3>'
         print >>out, '<p>{}. '.format(describe_type(ns, func['returns']))
-        print >>out, '{}</p>'.format(func['returns']['description'])
+        if 'description' in func['returns']:
+            print >>out, '{}</p>'.format(func['returns']['description'])
 
     describe_anonymous_objects(ns, anonymous_objects, out)
 
@@ -424,12 +464,12 @@ def generate_type(json_name, ns, t):
 
     print >>out, '<h2 id="Type">Type</h2>'
 
-    anonymous_objects = {}
+    anonymous_objects = []
+    collect_anonymous_objects(ns, t, anonymous_objects)
 
     if t['type'] == 'object':
         print >>out, '<p>Values of this type are objects.</p>'
         print >>out, describe_object(ns, t, True)
-        collect_anonymous_objects(ns, t, anonymous_objects)
     elif t['type'] == 'string':
         print >>out, '<p>Values of this type are strings.'
         if 'enum' in t:
@@ -514,7 +554,7 @@ def generate_event(json_name, ns, func):
     print >>out, '<dt><code>callback</code></dt>'
     
     callback_desc = "<p>Function that will be called when this event occurs."
-    anonymous_objects = {}
+    anonymous_objects = []
 
     if len(params) > 0:
         callback_desc += " The function will be passed the following arguments:</p>"
@@ -529,10 +569,12 @@ def generate_event(json_name, ns, func):
 
             if param.get('type') == 'object':
                 callback_desc += describe_object(ns, param)
-                collect_anonymous_objects(ns, param, anonymous_objects)
             elif param.get('type') == 'function':
                 callback_desc += describe_function(ns, param)
             callback_desc += "</dd></dl>"
+            
+            collect_anonymous_objects(ns, param, anonymous_objects)
+
             
     if 'returns' in func:
         return_type_desc = describe_type(ns, func['returns'])
@@ -556,12 +598,14 @@ def generate_event(json_name, ns, func):
 
             if param.get('type') == 'object':
                 desc += describe_object(ns, param)
-                collect_anonymous_objects(ns, param, anonymous_objects)
 
             elif param.get('type') == 'function':
                 desc += describe_function(ns, param)
             if desc:
                 print >>out, '<dd>{}</dd>'.format(desc)
+
+            collect_anonymous_objects(ns, param, anonymous_objects)
+
 
     print >>out, '</dl>'
 
