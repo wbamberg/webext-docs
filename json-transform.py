@@ -307,7 +307,7 @@ def describe_function(ns, func):
     if 'parameters' not in func or len(func['parameters']) == 0:
         return ''
 
-    desc = ' The function is passed the following arguments:'
+    desc = 'The function is passed the following arguments:'
     desc += '''
     <table class="standard-table">
       <thead>
@@ -434,6 +434,8 @@ def generate_function(json_name, ns, func):
                     desc += describe_object(ns, choice)
                 elif choice.get('type') == 'function':
                     desc += describe_function(ns, choice)
+        elif param.get('$ref'):
+            desc += '{{{{WebExtAPIEmbedType("{}")}}}}'.format(param.get('$ref'))
 
         if desc:
             print >>out, '<dd>{}</dd>'.format(desc)
@@ -468,16 +470,20 @@ def generate_type(json_name, ns, t):
     collect_anonymous_objects(ns, t, anonymous_objects)
 
     if t['type'] == 'object':
-        print >>out, '<p>Values of this type are objects.</p>'
-        print >>out, describe_object(ns, t, True)
+        print >>out, 'Values of this type are objects.'
+        if t.get('properties'):
+            print >>out, " They contain the following properties:"
+            print >>out, describe_object(ns, t, True)
+        else:
+            print >>out, ".</p>"
     elif t['type'] == 'string':
-        print >>out, '<p>Values of this type are strings.'
+        print >>out, 'Values of this type are strings.'
         if 'enum' in t:
             print >>out, describe_enum(t['enum'])
         print >>out, '</p>'
 
     elif t['type'] == 'array':
-        print >>out, '<p>Values of this type are {}s.'.format(describe_type(ns, t))
+        print >>out, 'Values of this type are {}s.'.format(describe_type(ns, t))
         if 'minItems' in t:
             assert t['minItems'] == t['maxItems']
             print >>out, 'The array should contain {} elements.'.format(t['minItems'])
@@ -486,7 +492,6 @@ def generate_type(json_name, ns, t):
         if 'minimum' in items:
             print >>out, 'Array elements should be between {} and {}.'.format(
                 t['items']['minimum'], t['items']['maximum'])
-        print >>out, '</p>'
 
         if items['type'] == 'object':
             print >>out, '<p>Elements of the array look like:</p>'
