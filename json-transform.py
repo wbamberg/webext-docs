@@ -548,14 +548,28 @@ def generate_event(json_name, ns, func):
     print >>out, 'browser.{}.{}.removeListener(listener)'.format(ns['namespace'], func['name'])
     print >>out, 'browser.{}.{}.hasListener(listener)'.format(ns['namespace'], func['name'])
     print >>out, '</pre>'    
-    
+
     extra_params = func.get('extraParameters', [])
     add_listener_params = ", ".join(["callback"] + [extra_param['name'] for extra_param in extra_params])
-    
-    print >>out, '<h3>addListener({})</h3>'.format(add_listener_params)
-    print >>out, '<p>Adds a listener to this event.</p>'
-    print >>out, '<h4>Parameters</h4>'
+
+    print >>out, '<p>Events have three functions:</p>'
     print >>out, '<dl>'
+    print >>out, '<dt><code>addListener({})</code></dt>'.format(add_listener_params)
+    print >>out, '<dd>Adds a listener to this event.</dd>'
+
+    print >>out, '<dt><code>removeListener(listener)</code></dt>'
+    print >>out, '<dd>Stop listening to this event. '
+    print >>out, 'The <code>listener</code> argument is the listener to remove.</dd>'
+
+    print >>out, '<dt><code>hasListener(listener)</code></dt>'
+    print >>out, '<dd>Check whether <code>listener</code> is registered for this event. '
+    print >>out, 'Returns <code>true</code> if it is listening, <code>false</code> otherwise.</dd>'
+
+    print >>out, '</dl>'
+
+    print >>out, '<h2>addListener syntax</h2>'
+    print >>out, '<h3>Parameters</h3>'
+
     print >>out, '<dt><code>callback</code></dt>'
     
     callback_desc = "<p>Function that will be called when this event occurs."
@@ -567,7 +581,7 @@ def generate_event(json_name, ns, func):
         for param in params:
             param_name = param['name']
             if param_name == "details":
-                callback_desc += '<dl><dt><code>details</code></dt><dd><p>An object providing details about the event. This object has the following structure:</p>'
+                callback_desc += '<dl><dt><code>details</code></dt><dd>An object providing details about the event. This object has the following structure:'
             else:
                 callback_desc += '<dl><dt><code>{}</code></dt>'.format(param['name'])
                 callback_desc += '<dd>{}. {}'.format(describe_type(ns, param), param.get('description', ''))
@@ -613,25 +627,6 @@ def generate_event(json_name, ns, func):
 
 
     print >>out, '</dl>'
-
-    print >>out, '<h3>removeListener(callback)</h3>'
-    print >>out, '<p>Stops this listener receiving notifications for this event.</p>'
-    print >>out, '<h4>Parameters</h4>'
-    print >>out, '<dl>'
-    print >>out, '<dt><code>callback</code></dt>'
-    print >>out, '<dd><code>Function</code>. The listener to remove.</dd>'
-    print >>out, '</dl>'
-    
-    print >>out, '<h3>hasListener(callback)</h3>'
-    print >>out, '<p>Find out whether the given callback is registered as a listener to this event.</p>'
-    print >>out, '<h4>Parameters</h4>'
-    print >>out, '<dl>'
-    print >>out, '<dt><code>callback</code></dt>'
-    print >>out, '<dd><code>Function</code>. The listener to check.</dd>'
-    print >>out, '</dl>'
-    
-    print >>out, '<h4>Return value</h4>'
-    print >>out, '<p>Boolean: <code>true</code> if the given listener is registered, <code>false</code> otherwise.'
 
     describe_anonymous_objects(ns, anonymous_objects, out)
 
