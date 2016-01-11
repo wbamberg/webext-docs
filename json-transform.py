@@ -46,7 +46,8 @@ JSON_SOURCES = {
     'web_navigation': LINK1,
     'web_request': LINK2,
     'extension_types': LINK2,
-    'events': LINK2
+    'events': LINK2,
+    'page_action': LINK1
 }
 
 CHROMIUM_DOCS = 'https://developer.chrome.com/extensions/'
@@ -255,35 +256,15 @@ def describe_object(ns, obj, anchor=False):
     if not props:
         return ''
 
-    desc = ''
-    desc += '''
-    <table class="standard-table">
-      <thead>
-        <tr>
-          <th scope="col" style="width: 20%;">Name</th>
-          <th scope="col" colspan="2" rowspan="1">Type</th>
-          <th scope="col" style="width: 50%;">Description</th>
-        </tr>
-      </thead>
-      <tbody>\n
-    '''
+    desc = '<p><dl>'
     for prop in props:
-        desc += '  <tr>\n'
-        # Name
-        if anchor:
-            desc += '    <td><code><a name="{}">{}</a></code></td>\n'.format(prop, prop)
-        else:
-            desc += '    <td><code>{}</code></td>\n'.format(prop)
-        # Type
-        if props[prop].get('optional'):
-            desc += '    <td>{}</td>\n'.format(describe_type(ns, props[prop], prop))
-            desc += '    <td>Optional</td>\n'
-        else:
-            desc += '    <td colspan="2" rowspan="1">{}</td>\n'.format(describe_type(ns, props[prop], prop))
-        desc += '    <td>{}</td>\n'.format(props[prop].get('description', ''))
-        desc += '  </tr>\n'
+        optional = props[prop].get('optional', False)
+        thing_type = describe_type(ns, props[prop], prop)
+        description = props[prop].get('description', '')
 
-    desc += '</tbody></table>\n'
+        desc += describe_thing_as_dl_item(prop, thing_type, optional, description)
+
+    desc += '</dl></p>'
 
     return desc
 
@@ -308,31 +289,16 @@ def describe_function(ns, func):
         return ''
 
     desc = 'The function is passed the following arguments:'
-    desc += '''
-    <table class="standard-table">
-      <thead>
-        <tr>
-          <th scope="col" style="width: 20%;">Name</th>
-          <th scope="col" colspan="2" rowspan="1">Type</th>
-          <th scope="col" style="width: 50%;">Description</th>
-        </tr>
-      </thead>
-      <tbody>\n
-    '''
- 
+
+    desc += '<p><dl>'
     for param in func['parameters']:
-        desc += '  <tr>\n'
-        desc += '    <td><code>{}</code></td>\n'.format(param['name'])
+        optional = param.get('optional', False)
+        thing_type = describe_type(ns, param, param['name'])
+        description = param.get('description', '')
 
-        if param.get('optional'):
-            desc += '    <td>{}</td>\n'.format(describe_type(ns, param, param['name']))
-            desc += '    <td>Optional</td>\n'
-        else:
-            desc += '    <td colspan="2" rowspan="1">{}</td>\n'.format(describe_type(ns, param, param['name']))
-        desc += '    <td>{}</td>\n'.format(param.get('description', ''))
-        desc += '  </tr>\n'
+        desc += describe_thing_as_dl_item(param['name'], thing_type, optional, description)
 
-    desc += '</tbody></table>\n'
+    desc += '</dl></p>'
 
     return desc
 
@@ -383,6 +349,22 @@ def generate_acknowledgement(out, json_name, ns, anchor = None):
     print >>out, '<div class="hidden"><pre>'
     print >>out, LICENSE.strip()
     print >>out, '</pre></div>'
+
+def describe_thing_as_dl_item(name, thing_type, optional, description):
+    dl_item = ''
+
+    if optional:
+        dl_item = '<dt><code>{}</code>{{{{optional_inline}}}}</dt>'.format(name)
+    else:
+        dl_item = '<dt><code>{}</code></dt>'.format(name)
+
+    desc = '{}. '.format(thing_type)
+    desc += description
+
+    if desc:
+        dl_item += '<dd>{}</dd>'.format(desc)
+
+    return dl_item
 
 def generate_function(json_name, ns, func):
     out = generate_preamble(ns['namespace'], func['name'], "Method")

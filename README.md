@@ -7,7 +7,8 @@ You can generate docs locally as follows:
     mkdir out
     python json-transform.py data/ out windows tabs extension \
         bookmarks cookies i18n browser_action context_menus \
-        runtime idle storage web_navigation web_request extension_types events
+        runtime idle storage web_navigation web_request extension_types \
+        events page_action
 
 The output will be generated in files like `out/tabs/create` or
 `out/tabs/INDEX` for the page that covers the whole `tabs` namespace.
