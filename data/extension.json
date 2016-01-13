@@ -5,7 +5,7 @@
 [
   {
     "namespace": "extension",
-    "description": "The <code>browser.extension</code> API has utilities that can be used by any extension page. It includes support for exchanging messages between an extension and its content scripts or between extensions, as described in detail in <a href='$(topic:messaging)'>Message Passing</a>.",
+    "description": "The <code>browser.extension</code> API has utilities that can be used by any extension page. It includes support for exchanging messages between an extension and its content scripts or between extensions, as described in detail in $(topic:messaging)[Message Passing].",
     "properties": {
       "lastError": {
         "type": "object",
@@ -30,30 +30,6 @@
       }
     ],
     "functions": [
-      {
-        "name": "sendRequest",
-        "unsupported": true,
-        "deprecated": "Please use $(ref:runtime.sendMessage).",
-        "type": "function",
-        "allowAmbiguousOptionalArguments": true,
-        "description": "Sends a single request to other listeners within the extension. Similar to $(ref:runtime.connect), but only sends a single request with an optional response. The $(ref:extension.onRequest) event is fired in each page of the extension.",
-        "parameters": [
-          {"type": "string", "name": "extensionId", "optional": true, "description": "The extension ID of the extension you want to connect to. If omitted, default is your own extension."},
-          { "type": "any", "name": "request" },
-          {
-            "type": "function",
-            "name": "responseCallback",
-            "optional": true,
-            "parameters": [
-              {
-                "name": "response",
-                "type": "any",
-                "description": "The JSON response object sent by the handler of the request. If an error occurs while connecting to the extension, the callback will be called with no arguments and $(ref:runtime.lastError) will be set to the error message."
-              }
-            ]
-          }
-        ]
-      },
       {
         "name": "getURL",
         "type": "function",
@@ -118,32 +94,10 @@
          }
       },
       {
-        "name": "getExtensionTabs",
-        "unsupported": true,
-        "deprecated": "Please use $(ref:extension.getViews) <code>{type: \"tab\"}</code>.",
-        "type": "function",
-        "maximumManifestVersion": 1,
-        "description": "Returns an array of the JavaScript 'window' objects for each of the tabs running inside the current extension. If <code>windowId</code> is specified, returns only the 'window' objects of tabs attached to the specified window.",
-        "parameters": [
-          {"type": "integer", "name": "windowId", "optional": true}
-        ],
-        "returns": {
-          "type": "array",
-          "description": "Array of global window objects",
-          "items": {
-            "type": "object",
-            "name": "tabGlobals",
-            "isInstanceOf": "Window",
-            "additionalProperties": { "type": "any" }
-          }
-        }
-      },
-      {
         "name": "isAllowedIncognitoAccess",
         "unsupported": true,
         "type": "function",
         "description": "Retrieves the state of the extension's access to Incognito-mode (as determined by the user-controlled 'Allowed in Incognito' checkbox.",
-        "min_version": "12.0.706.0",
         "parameters": [
           {
             "type": "function",
@@ -163,7 +117,6 @@
         "unsupported": true,
         "type": "function",
         "description": "Retrieves the state of the extension's access to the 'file://' scheme (as determined by the user-controlled 'Allow access to File URLs' checkbox.",
-        "min_version": "12.0.706.0",
         "parameters": [
           {
             "type": "function",
@@ -194,9 +147,6 @@
         "unsupported": true,
         "deprecated": "Please use $(ref:runtime.onMessage).",
         "type": "function",
-        "options": {
-          "unmanaged": true
-        },
         "description": "Fired when a request is sent from either an extension process or a content script.",
         "parameters": [
           {"name": "request", "type": "any", "optional": true, "description": "The request sent by the calling script."},

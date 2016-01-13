@@ -41,8 +41,8 @@
             "optional": true,
             "description": "The state of this browser window."
           },
-          "alwaysOnTop": {"type": "boolean", "description": "Whether the window is set to be always on top."},
-          "sessionId": {"type": "string", "optional": true, "description": "The session ID used to uniquely identify a Window obtained from the $(ref:sessions) API."}
+          "alwaysOnTop": {"unsupported": true, "type": "boolean", "description": "Whether the window is set to be always on top."},
+          "sessionId": {"unsupported": true, "type": "string", "optional": true, "description": "The session ID used to uniquely identify a Window obtained from the $(ref:sessions) API."}
         }
       },
       {
@@ -59,7 +59,7 @@
       },
       "WINDOW_ID_CURRENT": {
         "value": -2,
-        "description": "The windowId value that represents the <a href='$(topic:current-window)'>current window</a>."
+        "description": "The windowId value that represents the $(topic:current-window)[current window]."
       }
     },
     "functions": [
@@ -93,7 +93,7 @@
       {
         "name": "getCurrent",
         "type": "function",
-        "description": "Gets the <a href='$(topic:current-window)'>current window</a>.",
+        "description": "Gets the $(topic:current-window)[current window].",
         "parameters": [
           {
             "type": "object",
