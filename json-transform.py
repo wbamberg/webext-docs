@@ -256,7 +256,7 @@ def describe_object(ns, obj, anchor=False):
     if not props:
         return ''
 
-    desc = '<p><dl>'
+    desc = '<p><dl class="api-reference-values">'
     for prop in props:
         optional = props[prop].get('optional', False)
         thing_type = describe_type(ns, props[prop], prop)
@@ -290,7 +290,7 @@ def describe_function(ns, func):
 
     desc = 'The function is passed the following arguments:'
 
-    desc += '<p><dl>'
+    desc += '<p><dl class="api-reference-values">'
     for param in func['parameters']:
         optional = param.get('optional', False)
         thing_type = describe_type(ns, param, param['name'])
@@ -552,7 +552,7 @@ def generate_event(json_name, ns, func):
     print >>out, '<h2>addListener syntax</h2>'
     print >>out, '<h3>Parameters</h3>'
 
-    print >>out, '<dt><code>callback</code></dt>'
+    print >>out, '<dl><dt><code>callback</code></dt>'
     
     callback_desc = "<p>Function that will be called when this event occurs."
     anonymous_objects = []
@@ -562,20 +562,12 @@ def generate_event(json_name, ns, func):
         
         for param in params:
             param_name = param['name']
-            if param_name == "details":
-                callback_desc += '<dl><dt><code>details</code></dt><dd>An object providing details about the event. This object has the following structure:'
-            else:
-                callback_desc += '<dl><dt><code>{}</code></dt>'.format(param['name'])
-                callback_desc += '<dd>{}. {}'.format(describe_type(ns, param), param.get('description', ''))
+            callback_desc += '<dl class="api-reference-values"><dt><code>{}</code></dt>'.format(param['name'])
+            callback_desc += '<dd>{}. {}'.format(describe_type(ns, param, param_name), param.get('description', ''))
 
-            if param.get('type') == 'object':
-                callback_desc += describe_object(ns, param)
-            elif param.get('type') == 'function':
+            if param.get('type') == 'function':
                 callback_desc += describe_function(ns, param)
             callback_desc += "</dd></dl>"
-            
-            collect_anonymous_objects(ns, param, anonymous_objects)
-
             
     if 'returns' in func:
         return_type_desc = describe_type(ns, func['returns'])
@@ -605,7 +597,7 @@ def generate_event(json_name, ns, func):
             if desc:
                 print >>out, '<dd>{}</dd>'.format(desc)
 
-            collect_anonymous_objects(ns, param, anonymous_objects)
+    collect_anonymous_objects(ns, func, anonymous_objects)
 
 
     print >>out, '</dl>'
