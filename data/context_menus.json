@@ -5,7 +5,7 @@
 [
   {
     "namespace": "contextMenus",
-    "description": "Use the <code>chrome.contextMenus</code> API to add items to Google Chrome's context menu. You can choose what types of objects your context menu additions apply to, such as images, hyperlinks, and pages.",
+    "description": "Use the <code>browser.contextMenus</code> API to add items to the browser's context menu. You can choose what types of objects your context menu additions apply to, such as images, hyperlinks, and pages.",
     "properties": {
       "ACTION_MENU_TOP_LEVEL_LIMIT": {
         "value": 6,
@@ -96,7 +96,7 @@
       {
         "name": "create",
         "type": "function",
-        "description": "Creates a new context menu item. Note that if an error occurs during creation, you may not find out until the creation callback fires (the details will be in chrome.runtime.lastError).",
+        "description": "Creates a new context menu item. Note that if an error occurs during creation, you may not find out until the creation callback fires (the details will be in $(ref:runtime.lastError)).",
         "returns": {
           "choices": [
             { "type": "integer" },
@@ -141,7 +141,7 @@
               "onclick": {
                 "type": "function",
                 "optional": true,
-                "description": "A function that will be called back when the menu item is clicked. Event pages cannot use this; instead, they should register a listener for chrome.contextMenus.onClicked.",
+                "description": "A function that will be called back when the menu item is clicked. Event pages cannot use this; instead, they should register a listener for $(ref:contextMenus.onClicked).",
                 "parameters": [
                   {
                     "name": "info",
@@ -167,7 +167,7 @@
                 "type": "array",
                 "items": {"type": "string"},
                 "optional": true,
-                "description": "Lets you restrict the item to apply only to documents whose URL matches one of the given patterns. (This applies to frames as well.) For details on the format of a pattern, see <a href='match_patterns'>Match Patterns</a>."
+                "description": "Lets you restrict the item to apply only to documents whose URL matches one of the given patterns. (This applies to frames as well.) For details on the format of a pattern, see $(topic:match_patterns)[Match Patterns]."
               },
               "targetUrlPatterns": {
                 "type": "array",
@@ -186,7 +186,7 @@
             "type": "function",
             "name": "callback",
             "optional": true,
-            "description": "Called when the item has been created in the browser. If there were any problems creating the item, details will be available in chrome.runtime.lastError.",
+            "description": "Called when the item has been created in the browser. If there were any problems creating the item, details will be available in $(ref:runtime.lastError).",
             "parameters": []
           }
         ]

@@ -44,13 +44,13 @@
           "id": {"type": "integer", "minimum": -1, "optional": true, "description": "The ID of the tab. Tab IDs are unique within a browser session. Under some circumstances a Tab may not be assigned an ID, for example when querying foreign tabs using the $(ref:sessions) API, in which case a session ID may be present. Tab ID can also be set to $(ref:tabs.TAB_ID_NONE) for apps and devtools windows."},
           "index": {"type": "integer", "minimum": -1, "description": "The zero-based index of the tab within its window."},
           "windowId": {"type": "integer", "minimum": 0, "description": "The ID of the window the tab is contained within."},
-          "openerTabId": {"type": "integer", "minimum": 0, "optional": true, "description": "The ID of the tab that opened this tab, if any. This property is only present if the opener tab still exists."},
+          "openerTabId": {"unsupported": true, "type": "integer", "minimum": 0, "optional": true, "description": "The ID of the tab that opened this tab, if any. This property is only present if the opener tab still exists."},
           "selected": {"type": "boolean", "description": "Whether the tab is selected.", "deprecated": "Please use $(ref:tabs.Tab.highlighted).", "unsupported": true},
           "highlighted": {"type": "boolean", "description": "Whether the tab is highlighted."},
           "active": {"type": "boolean", "description": "Whether the tab is active in its window. (Does not necessarily mean the window is focused.)"},
           "pinned": {"type": "boolean", "description": "Whether the tab is pinned."},
-          "audible": {"type": "boolean", "optional": true, "description": "Whether the tab has produced sound over the past couple of seconds (but it might not be heard if also muted). Equivalent to whether the speaker audio indicator is showing."},
-          "mutedInfo": {"$ref": "MutedInfo", "optional": true, "description": "Current tab muted state and the reason for the last state change."},
+          "audible": {"unsupported": true, "type": "boolean", "optional": true, "description": "Whether the tab has produced sound over the past couple of seconds (but it might not be heard if also muted). Equivalent to whether the speaker audio indicator is showing."},
+          "mutedInfo": {"unsupported": true, "$ref": "MutedInfo", "optional": true, "description": "Current tab muted state and the reason for the last state change."},
           "url": {"type": "string", "optional": true, "description": "The URL the tab is displaying. This property is only present if the extension's manifest includes the <code>\"tabs\"</code> permission."},
           "title": {"type": "string", "optional": true, "description": "The title of the tab. This property is only present if the extension's manifest includes the <code>\"tabs\"</code> permission."},
           "favIconUrl": {"type": "string", "optional": true, "description": "The URL of the tab's favicon. This property is only present if the extension's manifest includes the <code>\"tabs\"</code> permission. It may also be an empty string if the tab is loading."},
@@ -58,7 +58,7 @@
           "incognito": {"type": "boolean", "description": "Whether the tab is in an incognito window."},
           "width": {"type": "integer", "optional": true, "description": "The width of the tab in pixels."},
           "height": {"type": "integer", "optional": true, "description": "The height of the tab in pixels."},
-          "sessionId": {"type": "string", "optional": true, "description": "The session ID used to uniquely identify a Tab obtained from the $(ref:sessions) API."}
+          "sessionId": {"unsupported": true, "type": "string", "optional": true, "description": "The session ID used to uniquely identify a Tab obtained from the $(ref:sessions) API."}
         }
       },
       {
@@ -177,7 +177,7 @@
       {
         "name": "connect",
         "type": "function",
-        "description": "Connects to the content script(s) in the specified tab. The $(ref:runtime.onConnect) event is fired in each content script running in the specified tab for the current extension. For more details, see <a href='$(topic:messaging)'>Content Script Messaging</a>.",
+        "description": "Connects to the content script(s) in the specified tab. The $(ref:runtime.onConnect) event is fired in each content script running in the specified tab for the current extension. For more details, see $(topic:messaging)[Content Script Messaging].",
         "parameters": [
           {
             "type": "integer",
@@ -193,7 +193,7 @@
                 "type": "integer",
                 "optional": true,
                 "minimum": 0,
-                "description": "Open a port to a specific <a href='$(topic:frame_ids)'>frame</a> identified by <code>frameId</code> instead of all frames in the tab."
+                "description": "Open a port to a specific $(topic:frame_ids)[frame] identified by <code>frameId</code> instead of all frames in the tab."
               }
             },
             "optional": true
@@ -256,7 +256,7 @@
                 "type": "integer",
                 "optional": true,
                 "minimum": 0,
-                "description": "Send a message to a specific <a href='$(topic:frame_ids)'>frame</a> identified by <code>frameId</code> instead of all frames in the tab."
+                "description": "Send a message to a specific $(topic:frame_ids)[frame] identified by <code>frameId</code> instead of all frames in the tab."
               }
             },
             "optional": true
@@ -287,7 +287,7 @@
             "name": "windowId",
             "minimum": -2,
             "optional": true,
-            "description": "Defaults to the <a href='$(topic:current-window)'>current window</a>."
+            "description": "Defaults to the $(topic:current-window)[current window]."
           },
           {
             "type": "function",
@@ -309,7 +309,7 @@
             "name": "windowId",
             "minimum": -2,
             "optional": true,
-            "description": "Defaults to the <a href='$(topic:current-window)'>current window</a>."
+            "description": "Defaults to the $(topic:current-window)[current window]."
             },
           {
             "type": "function",
@@ -333,7 +333,7 @@
                 "type": "integer",
                 "minimum": -2,
                 "optional": true,
-                "description": "The window to create the new tab in. Defaults to the <a href='$(topic:current-window)'>current window</a>."
+                "description": "The window to create the new tab in. Defaults to the $(topic:current-window)[current window]."
               },
               "index": {
                 "type": "integer",
@@ -364,6 +364,7 @@
                 "description": "Whether the tab should be pinned. Defaults to <var>false</var>"
               },
               "openerTabId": {
+                "unsupported": true,
                 "type": "integer",
                 "minimum": 0,
                 "optional": true,
@@ -431,11 +432,13 @@
                 "description": "Whether the tabs are pinned."
               },
               "audible": {
+                "unsupported": true,
                 "type": "boolean",
                 "optional": true,
                 "description": "Whether the tabs are audible."
               },
               "muted": {
+                "unsupported": true,
                 "type": "boolean",
                 "optional": true,
                 "description": "Whether the tabs are muted."
@@ -448,7 +451,7 @@
               "currentWindow": {
                 "type": "boolean",
                 "optional": true,
-                "description": "Whether the tabs are in the <a href='$(topic:current-window)'>current window</a>."
+                "description": "Whether the tabs are in the $(topic:current-window)[current window]."
               },
               "lastFocusedWindow": {
                 "type": "boolean",
@@ -471,13 +474,13 @@
                   {"type": "array", "items": {"type": "string"}}
                 ],
                 "optional": true,
-                "description": "Match tabs against one or more <a href='$(topic:match_patterns)'>URL patterns</a>. Note that fragment identifiers are not matched."
+                "description": "Match tabs against one or more $(topic:match_patterns)[URL patterns]. Note that fragment identifiers are not matched."
               },
               "windowId": {
                 "type": "integer",
                 "optional": true,
                 "minimum": -2,
-                "description": "The ID of the parent window, or $(ref:windows.WINDOW_ID_CURRENT) for the <a href='$(topic:current-window)'>current window</a>."
+                "description": "The ID of the parent window, or $(ref:windows.WINDOW_ID_CURRENT) for the $(topic:current-window)[current window]."
               },
               "windowType": {
                 "$ref": "WindowType",
@@ -555,7 +558,7 @@
             "name": "tabId",
             "minimum": 0,
             "optional": true,
-            "description": "Defaults to the selected tab of the <a href='$(topic:current-window)'>current window</a>."
+            "description": "Defaults to the selected tab of the $(topic:current-window)[current window]."
           },
           {
             "type": "object",
@@ -713,7 +716,7 @@
             "name": "tabId",
             "minimum": 0,
             "optional": true,
-            "description": "Defaults to the active tab of the <a href='$(topic:current-window)'>current window</a>."
+            "description": "Defaults to the active tab of the $(topic:current-window)[current window]."
           },
           {
             "type": "function",
@@ -731,14 +734,14 @@
       {
         "name": "captureVisibleTab",
         "type": "function",
-        "description": "Captures the visible area of the currently active tab in the specified window. You must have <a href='$(topic:declare_permissions)'>&lt;all_urls&gt;</a> permission to use this method.",
+        "description": "Captures the visible area of the currently active tab in the specified window. You must have $(topic:declare_permissions)[&lt;all_urls&gt;] permission to use this method.",
         "parameters": [
           {
             "type": "integer",
             "name": "windowId",
             "minimum": -2,
             "optional": true,
-            "description": "The target window. Defaults to the <a href='$(topic:current-window)'>current window</a>."
+            "description": "The target window. Defaults to the $(topic:current-window)[current window]."
           },
           {
             "$ref": "extensionTypes.ImageDetails",
@@ -755,7 +758,7 @@
       {
         "name": "executeScript",
         "type": "function",
-        "description": "Injects JavaScript code into a page. For details, see the <a href='$(topic:content_scripts)'>programmatic injection</a> section of the content scripts doc.",
+        "description": "Injects JavaScript code into a page. For details, see the $(topic:content_scripts)[programmatic injection] section of the content scripts doc.",
         "parameters": [
           {"type": "integer", "name": "tabId", "minimum": 0, "optional": true, "description": "The ID of the tab in which to run the script; defaults to the active tab of the current window."},
           {
@@ -783,7 +786,7 @@
       {
         "name": "insertCSS",
         "type": "function",
-        "description": "Injects CSS into a page. For details, see the <a href='$(topic:content_scripts)'>programmatic injection</a> section of the content scripts doc.",
+        "description": "Injects CSS into a page. For details, see the $(topic:content_scripts)[programmatic injection] section of the content scripts doc.",
         "parameters": [
           {"type": "integer", "name": "tabId", "minimum": 0, "optional": true, "description": "The ID of the tab in which to insert the CSS; defaults to the active tab of the current window."},
           {
@@ -945,11 +948,13 @@
                 "description": "The tab's new pinned state."
               },
               "audible": {
+                "unsupported": true,
                 "type": "boolean",
                 "optional": true,
                 "description": "The tab's new audible state."
               },
               "mutedInfo": {
+                "unsupported": true,
                 "$ref": "MutedInfo",
                 "optional": true,
                 "description": "The tab's new muted state and the reason for the change."

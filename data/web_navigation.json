@@ -11,7 +11,7 @@
         "id": "TransitionType",
         "type": "string",
         "enum": ["link", "typed", "auto_bookmark", "auto_subframe", "manual_subframe", "generated", "start_page", "form_submit", "reload", "keyword", "keyword_generated"],
-        "description": "Cause of the navigation. The same transition types as defined in the history API are used. These are the same transition types as defined in the <a href=\"$(topic:transition_types)\">history API</a> except with <code>\"start_page\"</code> in place of <code>\"auto_toplevel\"</code> (for backwards compatibility)."
+        "description": "Cause of the navigation. The same transition types as defined in the history API are used. These are the same transition types as defined in the $(topic:transition_types)[history API] except with <code>\"start_page\"</code> in place of <code>\"auto_toplevel\"</code> (for backwards compatibility)."
       },
       {
         "id": "TransitionQualifier",
@@ -32,7 +32,7 @@
             "description": "Information about the frame to retrieve information about.",
             "properties": {
               "tabId": { "type": "integer", "minimum": 0, "description": "The ID of the tab in which the frame is." },
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": { "type": "integer", "minimum": 0, "description": "The ID of the frame in the given tab." }
             }
           },
@@ -91,6 +91,7 @@
                       "description": "True if the last navigation in this frame was interrupted by an error, i.e. the onErrorOccurred event fired."
                     },
                     "processId": {
+                      "unsupported": true,
                       "type": "integer",
                       "description": "The ID of the process runs the renderer for this tab."
                     },
@@ -134,7 +135,7 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation is about to occur."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique for a given tab and process."},
               "parentFrameId": {"type": "integer", "description": "ID of frame that wraps the frame. Set to -1 of no parent frame exists."},
               "timeStamp": {"type": "number", "description": "The time when the browser was about to start the navigation, in milliseconds since the epoch."}
@@ -161,10 +162,10 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation occurs."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab."},
-              "transitionType": {"$ref": "TransitionType", "description": "Cause of the navigation."},
-              "transitionQualifiers": {"type": "array", "description": "A list of transition qualifiers.", "items": {"$ref": "TransitionQualifier"}},
+              "transitionType": {"unsupported": true, "$ref": "TransitionType", "description": "Cause of the navigation."},
+              "transitionQualifiers": {"unsupported": true, "type": "array", "description": "A list of transition qualifiers.", "items": {"$ref": "TransitionQualifier"}},
               "timeStamp": {"type": "number", "description": "The time when the navigation was committed, in milliseconds since the epoch."}
             }
           }
@@ -189,7 +190,7 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation occurs."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab."},
               "timeStamp": {"type": "number", "description": "The time when the page's DOM was fully constructed, in milliseconds since the epoch."}
             }
@@ -215,7 +216,7 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation occurs."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab."},
               "timeStamp": {"type": "number", "description": "The time when the document finished loading, in milliseconds since the epoch."}
             }
@@ -241,9 +242,9 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation occurs."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab."},
-              "error": {"type": "string", "description": "The error description."},
+              "error": {"unsupported": true, "type": "string", "description": "The error description."},
               "timeStamp": {"type": "number", "description": "The time when the error occurred, in milliseconds since the epoch."}
             }
           }
@@ -296,10 +297,10 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation occurs."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab."},
-              "transitionType": {"$ref": "TransitionType", "description": "Cause of the navigation."},
-              "transitionQualifiers": {"type": "array", "description": "A list of transition qualifiers.", "items": {"$ref": "TransitionQualifier"}},
+              "transitionType": {"unsupported": true, "$ref": "TransitionType", "description": "Cause of the navigation."},
+              "transitionQualifiers": {"unsupported": true, "type": "array", "description": "A list of transition qualifiers.", "items": {"$ref": "TransitionQualifier"}},
               "timeStamp": {"type": "number", "description": "The time when the navigation was committed, in milliseconds since the epoch."}
             }
           }
@@ -324,6 +325,7 @@
       },
       {
         "name": "onHistoryStateUpdated",
+        "unsupported": true,
         "type": "function",
         "description": "Fired when the frame's history was updated to a new URL. All future events for that frame will use the updated URL.",
         "filters": [
@@ -341,10 +343,10 @@
             "properties": {
               "tabId": {"type": "integer", "description": "The ID of the tab in which the navigation occurs."},
               "url": {"type": "string"},
-              "processId": {"type": "integer", "description": "The ID of the process runs the renderer for this tab."},
+              "processId": {"unsupported": true, "type": "integer", "description": "The ID of the process runs the renderer for this tab."},
               "frameId": {"type": "integer", "description": "0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab."},
-              "transitionType": {"$ref": "TransitionType", "description": "Cause of the navigation."},
-              "transitionQualifiers": {"type": "array", "description": "A list of transition qualifiers.", "items": {"$ref": "TransitionQualifier"}},
+              "transitionType": {"unsupported": true, "$ref": "TransitionType", "description": "Cause of the navigation."},
+              "transitionQualifiers": {"unsupported": true, "type": "array", "description": "A list of transition qualifiers.", "items": {"$ref": "TransitionQualifier"}},
               "timeStamp": {"type": "number", "description": "The time when the navigation was committed, in milliseconds since the epoch."}
             }
           }

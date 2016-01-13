@@ -91,10 +91,7 @@
                   { "$ref": "ImageDataType" },
                   {
                     "type": "object",
-                    "properties": {
-                      "19": {"$ref": "ImageDataType", "optional": true},
-                      "38": {"$ref": "ImageDataType", "optional": true}
-                     }
+                    "additionalProperties": {"$ref": "ImageDataType"}
                   }
                 ],
                 "optional": true,
@@ -105,10 +102,7 @@
                   { "type": "string" },
                   {
                     "type": "object",
-                    "properties": {
-                      "19": {"type": "string", "optional": true},
-                      "38": {"type": "string", "optional": true}
-                    }
+                    "additionalProperties": {"type": "string"}
                   }
                 ],
                 "optional": true,

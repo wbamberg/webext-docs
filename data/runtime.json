@@ -30,13 +30,11 @@
         "type": "object",
         "description": "An object containing information about the script context that sent a message or request.",
         "properties": {
-          "tab": {"$ref": "tabs.Tab", "optional": true, "description": "The $(ref:tabs.Tab) which opened the connection, if any. This property will <strong>only</strong> be present when the connection was opened from a tab (including content scripts), and <strong>only</strong> if the receiver is an extension, not an app.", "extension_types": ["extension", "legacy_packaged_app"]},
-          "frameId": {"type": "integer", "optional": true, "description": "The <a href='$(topic:frame_ids)'>frame</a> that opened the connection. 0 for top-level frames, positive for child frames. This will only be set when <code>tab</code> is set.", "extension_types": ["extension", "legacy_packaged_app"]},
-          "guestProcessId": {"type": "integer", "optional": true, "nodoc": true, "description": "The guest process id of the requesting webview, if available. Only available for component extensions.", "extension_types": ["extension"]},
-          "guestRenderFrameRoutingId": {"type": "integer", "optional": true, "nodoc": true, "description": "The guest render frame routing id of the requesting webview, if available. Only available for component extensions.", "extension_types": ["extension"]},
+          "tab": {"$ref": "tabs.Tab", "optional": true, "description": "The $(ref:tabs.Tab) which opened the connection, if any. This property will <strong>only</strong> be present when the connection was opened from a tab (including content scripts), and <strong>only</strong> if the receiver is an extension, not an app."},
+          "frameId": {"type": "integer", "optional": true, "description": "The $(topic:frame_ids)[frame] that opened the connection. 0 for top-level frames, positive for child frames. This will only be set when <code>tab</code> is set."},
           "id": {"type": "string", "optional": true, "description": "The ID of the extension or app that opened the connection, if any."},
           "url": {"type": "string", "optional": true, "description": "The URL of the page or frame that opened the connection. If the sender is in an iframe, it will be iframe's URL not the URL of the page which hosts it."},
-          "tlsChannelId": {"type": "string", "optional": true, "description": "The TLS channel ID of the page or frame that opened the connection, if requested by the extension or app, and if available."}
+          "tlsChannelId": {"unsupported": true, "type": "string", "optional": true, "description": "The TLS channel ID of the page or frame that opened the connection, if requested by the extension or app, and if available."}
         }
       },
       {
@@ -52,12 +50,6 @@
         "description": "The machine's processor architecture."
       },
       {
-        "id": "PlatformNaclArch",
-        "description": "The native client architecture. This may be different from arch on some platforms.",
-        "type": "string",
-        "enum": ["arm", "x86-32", "x86-64"]
-      },
-      {
         "id": "PlatformInfo",
         "type": "object",
         "description": "An object containing information about the current platform.",
@@ -71,6 +63,7 @@
             "description": "The machine's processor architecture."
           },
           "nacl_arch" : {
+            "unsupported": true,
             "description": "The native client architecture. This may be different from arch on some platforms.",
             "$ref": "PlatformNaclArch"
           }
@@ -139,7 +132,7 @@
         "name": "openOptionsPage",
         "unsupported": true,
         "type": "function",
-        "description": "<p>Open your Extension's options page, if possible.</p><p>The precise behavior may depend on your manifest's <code><a href=\"$(topic:optionsV2)\">options_ui</a></code> or <code><a href=\"$(topic:options)\">options_page</a></code> key, or what the browser happens to support at the time.</p><p>If your Extension does not declare an options page, or the browser failed to create one for some other reason, the callback will set $(ref:lastError).</p>",
+        "description": "<p>Open your Extension's options page, if possible.</p><p>The precise behavior may depend on your manifest's <code>$(topic:optionsV2)[options_ui]</code> or <code>$(topic:options)[options_page]</code> key, or what the browser happens to support at the time.</p><p>If your Extension does not declare an options page, or the browser failed to create one for some other reason, the callback will set $(ref:lastError).</p>",
         "parameters": [{
           "type": "function",
           "name": "callback",
@@ -149,7 +142,7 @@
       },
       {
         "name": "getManifest",
-        "description": "Returns details about the app or extension from the manifest. The object returned is a serialization of the full <a href=\"$(topic:manifest)\">manifest file</a>.",
+        "description": "Returns details about the app or extension from the manifest. The object returned is a serialization of the full $(topic:manifest)[manifest file].",
         "type": "function",
         "parameters": [],
         "returns": {
@@ -244,9 +237,9 @@
       {
         "name": "connect",
         "type": "function",
-        "description": "Attempts to connect to connect listeners within an extension/app (such as the background page), or other extensions/apps. This is useful for content scripts connecting to their extension processes, inter-app/extension communication, and <a href=\"$(topic:manifest/externally_connectable)\">web messaging</a>. Note that this does not connect to any listeners in a content script. Extensions may connect to content scripts embedded in tabs via $(ref:tabs.connect).",
+        "description": "Attempts to connect to connect listeners within an extension/app (such as the background page), or other extensions/apps. This is useful for content scripts connecting to their extension processes, inter-app/extension communication, and $(topic:manifest/externally_connectable)[web messaging]. Note that this does not connect to any listeners in a content script. Extensions may connect to content scripts embedded in tabs via $(ref:tabs.connect).",
         "parameters": [
-          {"type": "string", "name": "extensionId", "optional": true, "description": "The ID of the extension or app to connect to. If omitted, a connection will be attempted with your own extension. Required if sending messages from a web page for <a href=\"$(topic:manifest/externally_connectable)\">web messaging</a>."},
+          {"type": "string", "name": "extensionId", "optional": true, "description": "The ID of the extension or app to connect to. If omitted, a connection will be attempted with your own extension. Required if sending messages from a web page for $(topic:manifest/externally_connectable)[web messaging]."},
           {
             "type": "object",
             "name": "connectInfo",
@@ -285,7 +278,7 @@
         "allowAmbiguousOptionalArguments": true,
         "description": "Sends a single message to event listeners within your extension/app or a different extension/app. Similar to $(ref:runtime.connect) but only sends a single message, with an optional response. If sending to your extension, the $(ref:runtime.onMessage) event will be fired in each page, or $(ref:runtime.onMessageExternal), if a different extension. Note that extensions cannot send messages to content scripts using this method. To send messages to content scripts, use $(ref:tabs.sendMessage).",
         "parameters": [
-          {"type": "string", "name": "extensionId", "optional": true, "description": "The ID of the extension/app to send the message to. If omitted, the message will be sent to your own extension/app. Required if sending messages from a web page for <a href=\"$(topic:manifest/externally_connectable)\">web messaging</a>."},
+          {"type": "string", "name": "extensionId", "optional": true, "description": "The ID of the extension/app to send the message to. If omitted, the message will be sent to your own extension/app. Required if sending messages from a web page for $(topic:manifest/externally_connectable)[web messaging]."},
           { "type": "any", "name": "message" },
           {
             "type": "object",
@@ -336,10 +329,7 @@
               {
                 "name": "response",
                 "type": "any",
-                "description": "The response message sent by the native messaging host. If an error occurs while connecting to the native messaging host, the callback will be called with no arguments and $(ref:runtime.lastError) will be set to the error message.",
-                "additionalProperties": {
-                  "type": "any"
-                }
+                "description": "The response message sent by the native messaging host. If an error occurs while connecting to the native messaging host, the callback will be called with no arguments and $(ref:runtime.lastError) will be set to the error message."
               }
             ]
           }
@@ -462,9 +452,6 @@
       {
         "name": "onConnect",
         "type": "function",
-        "options": {
-          "unmanaged": true
-        },
         "description": "Fired when a connection is made from either an extension process or a content script.",
         "parameters": [
           {"$ref": "Port", "name": "port"}
@@ -482,9 +469,6 @@
       {
         "name": "onMessage",
         "type": "function",
-        "options": {
-          "unmanaged": true
-        },
         "description": "Fired when a message is sent from either an extension process or a content script.",
         "parameters": [
           {"name": "message", "type": "any", "optional": true, "description": "The message sent by the calling script."},
